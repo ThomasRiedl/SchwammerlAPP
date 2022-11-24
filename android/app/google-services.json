@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "854365379748",
+    "project_id": "schwammerlapp-e187",
+    "storage_bucket": "schwammerlapp-e187.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:854365379748:android:bbd30f0be147f2b52c5a31",
+        "android_client_info": {
+          "package_name": "com.example.schwammerlapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "854365379748-autmlv81n2dsuc5rk47udl59kcti280n.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB4zEsRFFGQYTsOWB1ecxqqMuqHXjGR9tQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "854365379748-autmlv81n2dsuc5rk47udl59kcti280n.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

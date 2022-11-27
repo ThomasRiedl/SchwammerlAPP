@@ -1,12 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:schwammerlapp/auth.dart';
 import 'package:flutter/material.dart';
+import 'package:schwammerlapp/pages/mapScene.dart';
+import 'package:schwammerlapp/pages/schwammerlInfo.dart';
 
 class HomePage extends StatelessWidget {
   HomePage({Key? key}) : super(key: key);
-
-  final carNameController = TextEditingController();
-  final licensePlateController = TextEditingController();
 
   final User? user = Auth().currentUser;
 
@@ -15,7 +14,7 @@ class HomePage extends StatelessWidget {
   }
 
   Widget _title() {
-    return const Text('CarLog');
+    return const Text('SchwammerlAPP');
   }
 
   Widget _userUid() {
@@ -29,13 +28,36 @@ class HomePage extends StatelessWidget {
     );
   }
 
+  Widget _showSchwammerlButton(BuildContext context) {
+    return ElevatedButton(
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const ShowSchwammerlPage()),
+        );
+      },
+      child: const Text('Schwammerl Info'),
+    );
+  }
+
+  Widget _startButton(BuildContext context) {
+    return ElevatedButton(
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => MapScene()),
+        );
+      },
+      child: const Text('Map'),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: _title(),
-        centerTitle: true,
-        backgroundColor: Colors.blue,
+        backgroundColor: Colors.orange,
       ),
       body: Container(
         height: double.infinity,
@@ -47,6 +69,8 @@ class HomePage extends StatelessWidget {
           children: <Widget>[
             _userUid(),
             _signOutButton(),
+            _showSchwammerlButton(context),
+            _startButton(context),
           ],
         ),
       ),

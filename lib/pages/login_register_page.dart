@@ -42,7 +42,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Widget _title() {
-    return const Text('CarLog');
+    return const Text('SchwammerlAPP');
   }
 
   Widget _entryField(
@@ -66,7 +66,7 @@ class _LoginPageState extends State<LoginPage> {
       onPressed:
       isLogin ? signInWithEmailAndPassword : createUserWithEmailAndPassword,
       style: ElevatedButton.styleFrom(
-      backgroundColor: Colors.blue,),
+      backgroundColor: Colors.orange,),
       child: Text(isLogin ? 'Login' : 'Register'),
     );
   }
@@ -78,7 +78,7 @@ class _LoginPageState extends State<LoginPage> {
           isLogin = !isLogin;});},
         style: ButtonStyle(
             foregroundColor: MaterialStateProperty.resolveWith(
-                    (state) => Colors.blue)),
+                    (state) => Colors.orange)),
       child: Text(isLogin ? 'Register instead' : 'Login instead'),
     );
   }
@@ -88,8 +88,7 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       appBar: AppBar(
         title: _title(),
-        centerTitle: true,
-        backgroundColor: Colors.blue,
+        backgroundColor: Colors.orange,
       ),
       body: Container(
         height: double.infinity,

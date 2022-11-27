@@ -1,5 +1,5 @@
 import 'package:schwammerlapp/auth.dart';
-import 'package:schwammerlapp/pages/home_page.dart';
+import 'package:schwammerlapp/pages/mapScene.dart';
 import 'package:schwammerlapp/pages/login_register_page.dart';
 import 'package:flutter/material.dart';
 
@@ -17,7 +17,7 @@ class _WidgetTreeState extends State<WidgetTree> {
       stream: Auth().authStateChanges,
       builder: (context, snapshot) {
         if (snapshot.hasData) {
-          return HomePage();
+          return MapScene();
         } else {
           return const LoginPage();
         }

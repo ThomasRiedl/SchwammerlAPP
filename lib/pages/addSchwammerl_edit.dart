@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class EditPage extends StatefulWidget {
   const EditPage({
@@ -17,6 +18,7 @@ class _EditPageState extends State<EditPage> {
   //Update User
   CollectionReference updateCar =
       FirebaseFirestore.instance.collection('places');
+
   Future<void> _updateUser(id, name, info) {
     return updateCar
         .doc(id)

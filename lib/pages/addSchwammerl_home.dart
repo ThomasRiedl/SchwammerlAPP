@@ -94,6 +94,17 @@ class _AddSchwammerlPageState extends State<AddSchwammerlPage> {
                             color: Colors.orange,
                             child: Center(
                               child: Text(
+                                'Bild',
+                                style: txt,
+                              ),
+                            ),
+                          ),
+                        ),
+                        TableCell(
+                          child: Container(
+                            color: Colors.orange,
+                            child: Center(
+                              child: Text(
                                 '',
                                 style: txt,
                               ),
@@ -122,6 +133,14 @@ class _AddSchwammerlPageState extends State<AddSchwammerlPage> {
                                   firebaseData[i]['info'],
                                   style: txt2,
                                 ),
+                              ),
+                            ),
+                          ),
+                          TableCell(
+                            child: SizedBox(
+                              child: Center(
+                                child: firebaseData[i].containsKey('image') ? Image.network(
+                                    '${firebaseData[i]['image']}') : Container(),
                               ),
                             ),
                           ),

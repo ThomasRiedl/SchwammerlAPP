@@ -1,6 +1,7 @@
 // @dart=2.9
 
 import 'dart:async';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:geolocator/geolocator.dart';
@@ -16,8 +17,6 @@ import 'package:schwammerlapp/pages/schwammerlInfo.dart';
 import 'package:schwammerlapp/pages/addSchwammerl_add.dart';
 import 'package:schwammerlapp/pages/addSchwammerl_home.dart';
 
-
-
 class MapScene extends  StatefulWidget {
   @override
   State<MapScene> createState() => _MapSceneState();
@@ -28,12 +27,15 @@ class _MapSceneState extends State<MapScene> {
   bool haspermission = false;
   LocationPermission permission;
   Position position;
-  double long = 0, lat = 0;
+  double long = 0;
+  double lat = 0;
   StreamSubscription<Position> positionStream;
   DateTime now = DateTime.now();
   String time;
   String date;
   CameraPosition _initialPosition = CameraPosition(target: LatLng(0, 0), zoom: 16);
+
+  final User user = Auth().currentUser;
 
   List<LatLng> routePoints = [];
   LatLng livePosition;
@@ -65,7 +67,6 @@ class _MapSceneState extends State<MapScene> {
     checkGps();
   }
 
-  final User user = Auth().currentUser;
 
   Future<void> signOut() async {
     await Auth().signOut();
@@ -94,7 +95,7 @@ class _MapSceneState extends State<MapScene> {
     );
   }
 
-  Widget _showSchwammerlButton(BuildContext context) {
+  Widget _showSchwammerlInfoButton(BuildContext context) {
     return ElevatedButton(
       onPressed: () {
         Navigator.push(
@@ -115,6 +116,18 @@ class _MapSceneState extends State<MapScene> {
         );
       },
       child: const Text('Schwammerlplätze ansehen'),
+    );
+  }
+
+  Widget _showSchwammerlPlacesOnMap(BuildContext context) {
+    return ElevatedButton(
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const AddSchwammerlPage()),
+        );
+      },
+      child: const Text('Schwammerlplätze auf Karte ansehen'),
     );
   }
 
@@ -230,7 +243,7 @@ class _MapSceneState extends State<MapScene> {
         origin = Marker(
           markerId: const MarkerId('origin'),
           infoWindow: const InfoWindow(title: 'Origin'),
-          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
           position: pos,
         );
         // Reset destination
@@ -243,7 +256,7 @@ class _MapSceneState extends State<MapScene> {
         destination = Marker(
           markerId: const MarkerId('destination'),
           infoWindow: const InfoWindow(title: 'Destination'),
-          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
           position: pos,
         );
       });
@@ -305,19 +318,11 @@ class _MapSceneState extends State<MapScene> {
                       markerId: const MarkerId('lifeTracking'),
                       infoWindow: const InfoWindow(title: 'LifeTracking'),
                       icon: BitmapDescriptor.defaultMarkerWithHue(
-                          BitmapDescriptor.hueMagenta),
+                          BitmapDescriptor.hueRed),
                       position: LatLng(lat, long),
                     ),
                     if (origin != null) origin,
                     if (destination != null) destination,
-                  },
-                  polylines: {
-                    Polyline(
-                      polylineId: const PolylineId("route"),
-                      points: routePoints,
-                      color: const Color(0xFF7B61FF),
-                      width: 6,
-                    ),
                   },
                   onLongPress: _addMarker,
                   initialCameraPosition: _initialPosition
@@ -329,7 +334,8 @@ class _MapSceneState extends State<MapScene> {
               children: <Widget>[
                 _addSchwammerlPlace(context),
                 _showSchwammerlPlaces(context),
-                _showSchwammerlButton(context),
+                _showSchwammerlPlacesOnMap(context),
+                _showSchwammerlInfoButton(context),
                 _signOutButton(),
               ],
             ),

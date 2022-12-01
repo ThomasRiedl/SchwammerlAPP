@@ -138,9 +138,14 @@ class _AddSchwammerlPageState extends State<AddSchwammerlPage> {
                           ),
                           TableCell(
                             child: SizedBox(
-                              child: Center(
-                                child: firebaseData[i].containsKey('image') ? Image.network(
-                                    '${firebaseData[i]['image']}') : Container(),
+                              child: Column(
+                                  children: [
+                                  if(firebaseData[i]['image'] == "")
+                                    const Text(''),
+                                  if(firebaseData[i]['image'] != "")
+                                    firebaseData[i].containsKey('image') ? Image.network(
+                                        '${firebaseData[i]['image']}') : Container(),
+                                  ],
                               ),
                             ),
                           ),

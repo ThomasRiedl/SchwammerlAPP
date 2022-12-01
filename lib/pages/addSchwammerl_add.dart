@@ -14,11 +14,20 @@ class AddPage extends StatefulWidget {
 
   const AddPage({Key? key}) : super(key: key);
 
+
   @override
   State<AddPage> createState() => _AddPageState();
 }
 
 class _AddPageState extends State<AddPage> {
+
+  GlobalKey<FormState> key = GlobalKey();
+
+
+  CollectionReference _reference =
+  FirebaseFirestore.instance.collection('places');
+
+  String imageUrl = '';
 
   //form key
   final _formkey = GlobalKey<FormState>();
@@ -27,12 +36,9 @@ class _AddPageState extends State<AddPage> {
   String info = '';
   // textfield
 
-  CollectionReference _reference = FirebaseFirestore.instance.collection('places');
-
-  String imageUrl = '';
-
   double long = 0;
   double lat = 0;
+
   late Position position;
 
   final nameController = TextEditingController();
@@ -49,11 +55,10 @@ class _AddPageState extends State<AddPage> {
   }
 
   //Registering Users
-  CollectionReference addCar =
+  CollectionReference addSchwammerl =
       FirebaseFirestore.instance.collection('places');
   Future<void> _registerSchwammerl() {
-    print(imageUrl);
-    return addCar
+    return addSchwammerl
         .add({'name': name, 'info': info, 'coords' : GeoPoint(lat, long), 'image' : imageUrl})
         .then((value) => print('added Schwammerl'))
         .catchError((_) => print('Something Error In registering Schwammerl'));
@@ -65,13 +70,14 @@ class _AddPageState extends State<AddPage> {
     long = position.longitude;
     lat = position.latitude;
   }
-    //Disposing Textfield
+
   @override
   void dispose() {
     nameController.dispose();
     infoController.dispose();
     super.dispose();
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -96,7 +102,7 @@ class _AddPageState extends State<AddPage> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton(
-                  onPressed: _clearText,
+                  onPressed: dispose,
                   style: ButtonStyle(
                     backgroundColor: MaterialStateProperty.all(Colors.orange),
                   ),
@@ -104,27 +110,12 @@ class _AddPageState extends State<AddPage> {
                 ),
                 IconButton(
                     onPressed: () async {
-                      /*
-                * Step 1. Pick/Capture an image   (image_picker)
-                * Step 2. Upload the image to Firebase storage
-                * Step 3. Get the URL of the uploaded image
-                * Step 4. Store the image URL inside the corresponding
-                *         document of the database.
-                * Step 5. Display the image on the list
-                *
-                * */
-
-                      /*Step 1:Pick image*/
-                      //Install image_picker
-                      //Import the corresponding library
-                      name = nameController.text;
 
                       ImagePicker imagePicker = ImagePicker();
+
                       XFile? file =
                       await imagePicker.pickImage(source: ImageSource.camera);
                       print('${file?.path}');
-
-                      if (file == null) return;
                       //Import dart:core
                       String uniqueFileName =
                       DateTime.now().millisecondsSinceEpoch.toString();
@@ -140,21 +131,15 @@ class _AddPageState extends State<AddPage> {
 
                       //Create a reference for the image to be stored
                       Reference referenceImageToUpload =
-                      referenceDirImages.child(name);
+                      referenceDirImages.child(uniqueFileName);
 
-                      //Handle errors/success
-                      try {
-                        //Store the file
-                        await referenceImageToUpload.putFile(File(file!.path));
-                        //Success: get the download URL
-                        imageUrl = await referenceImageToUpload.getDownloadURL();
-                      } catch (error) {
-                        //Some error occurred
-                      }
+                      await referenceImageToUpload.putFile(File(file!.path));
+                      imageUrl = await referenceImageToUpload.getDownloadURL();
+                      print(imageUrl);
                     },
                     icon: Icon(Icons.camera_alt)),
                 ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     if (_formkey.currentState!.validate()) {
                       setState(() {
                         name = nameController.text;

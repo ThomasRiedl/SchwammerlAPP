@@ -14,10 +14,10 @@ class AddSchwammerlPage extends StatefulWidget {
 class _AddSchwammerlPageState extends State<AddSchwammerlPage> {
   // Getting Student all Records
   final Stream<QuerySnapshot> carRecords =
-      FirebaseFirestore.instance.collection('places').snapshots();
+  FirebaseFirestore.instance.collection('places').snapshots();
   // For Deleting Users
   CollectionReference delCars =
-      FirebaseFirestore.instance.collection('places');
+  FirebaseFirestore.instance.collection('places');
   Future<void> _delete(id) {
     return delCars
         .doc(id)
@@ -139,13 +139,13 @@ class _AddSchwammerlPageState extends State<AddSchwammerlPage> {
                           TableCell(
                             child: SizedBox(
                               child: Column(
-                                  children: [
+                                children: [
                                   if(firebaseData[i]['image'] == "")
                                     const Text(''),
                                   if(firebaseData[i]['image'] != "")
                                     firebaseData[i].containsKey('image') ? Image.network(
                                         '${firebaseData[i]['image']}') : Container(),
-                                  ],
+                                ],
                               ),
                             ),
                           ),
@@ -171,7 +171,6 @@ class _AddSchwammerlPageState extends State<AddSchwammerlPage> {
                                 IconButton(
                                   onPressed: () {
                                     _delete(firebaseData[i]['id']);
-                                    //print(firebaseData);
                                   },
                                   icon: const Icon(
                                     Icons.delete,

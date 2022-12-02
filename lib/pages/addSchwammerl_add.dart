@@ -23,22 +23,21 @@ class _AddPageState extends State<AddPage> {
 
   GlobalKey<FormState> key = GlobalKey();
 
-
   CollectionReference _reference =
   FirebaseFirestore.instance.collection('places');
 
-  String imageUrl = '';
-
   //form key
   final _formkey = GlobalKey<FormState>();
+
   // text for textfield
   String name = '';
   String info = '';
-  // textfield
+
+  String imageUrl = '';
 
   double long = 0;
   double lat = 0;
-
+  bool isUploading = false;
   late Position position;
 
   final nameController = TextEditingController();
@@ -47,6 +46,7 @@ class _AddPageState extends State<AddPage> {
   @override
   void initState() {
     getLocation();
+
   }
 
   _clearText() {
@@ -57,11 +57,15 @@ class _AddPageState extends State<AddPage> {
   //Registering Users
   CollectionReference addSchwammerl =
       FirebaseFirestore.instance.collection('places');
-  Future<void> _registerSchwammerl() {
-    return addSchwammerl
-        .add({'name': name, 'info': info, 'coords' : GeoPoint(lat, long), 'image' : imageUrl})
-        .then((value) => print('added Schwammerl'))
-        .catchError((_) => print('Something Error In registering Schwammerl'));
+  Future<void>? _registerSchwammerl() {
+    while(!isUploading)
+      {
+        return addSchwammerl
+            .add({'name': name, 'info': info, 'coords' : GeoPoint(lat, long), 'image' : imageUrl})
+            .then((value) => print('added Schwammerl'))
+            .catchError((_) => print('Something Error In registering Schwammerl'));
+      }
+      return null;
   }
 
   getLocation() async {
@@ -77,7 +81,6 @@ class _AddPageState extends State<AddPage> {
     infoController.dispose();
     super.dispose();
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -109,37 +112,75 @@ class _AddPageState extends State<AddPage> {
                   child: const Text('Löschen'),
                 ),
                 IconButton(
-                    onPressed: () async {
+                    onPressed: () async{
+                      PickedFile? pickedFile = await ImagePicker().getImage(
+                      source: ImageSource.camera,
+                      maxHeight: 1920,
+                      maxWidth: 1080,
+                      imageQuality: 50,
+                      );
+                      if (pickedFile != null) {
+                      File imageFileCamera = File(pickedFile.path);
 
-                      ImagePicker imagePicker = ImagePicker();
-
-                      XFile? file =
-                      await imagePicker.pickImage(source: ImageSource.camera);
-                      print('${file?.path}');
-                      //Import dart:core
                       String uniqueFileName =
                       DateTime.now().millisecondsSinceEpoch.toString();
 
-                      /*Step 2: Upload to Firebase storage*/
-                      //Install firebase_storage
-                      //Import the library
-
-                      //Get a reference to storage root
                       Reference referenceRoot = FirebaseStorage.instance.ref();
                       Reference referenceDirImages =
                       referenceRoot.child('images');
 
-                      //Create a reference for the image to be stored
                       Reference referenceImageToUpload =
                       referenceDirImages.child(uniqueFileName);
 
-                      await referenceImageToUpload.putFile(File(file!.path));
-                      imageUrl = await referenceImageToUpload.getDownloadURL();
-                      print(imageUrl);
-                    },
-                    icon: Icon(Icons.camera_alt)),
-                ElevatedButton(
-                  onPressed: () async {
+                      try {
+                        setState(() => isUploading = true);
+                        UploadTask uploadTask =  referenceImageToUpload.putFile(File(imageFileCamera!.path));
+
+                        imageUrl = await (await uploadTask).ref.getDownloadURL();
+                      } catch (error) {
+                        setState(() => isUploading = false);
+                      }
+                      setState(() => isUploading = false);
+                      }
+                },
+                  icon: Icon(Icons.camera_alt)),
+                IconButton(
+                    onPressed: () async {
+                        PickedFile? pickedFile = await ImagePicker().getImage(
+                        source: ImageSource.gallery,
+                        maxWidth: 1800,
+                        maxHeight: 1800,
+                      );
+                      if (pickedFile != null) {
+                        File imageFileGallery = File(pickedFile.path);
+
+                        String uniqueFileName =
+                        DateTime.now().millisecondsSinceEpoch.toString();
+
+                        Reference referenceRoot = FirebaseStorage.instance.ref();
+                        Reference referenceDirImages =
+                        referenceRoot.child('images');
+
+                        Reference referenceImageToUpload =
+                        referenceDirImages.child(uniqueFileName);
+
+                        try {
+                          setState(() => isUploading = true);
+                          UploadTask uploadTask =  referenceImageToUpload.putFile(File(imageFileGallery!.path));
+
+                          imageUrl = await (await uploadTask).ref.getDownloadURL();
+
+                        } catch (error) {
+                          setState(() => isUploading = false);
+                        }
+                        setState(() => isUploading = false);
+                      }
+                      },
+                    icon: Icon(Icons.folder_copy_rounded)),
+                ElevatedButton.icon(
+
+                  onPressed: isUploading ?
+                     null :() {
                     if (_formkey.currentState!.validate()) {
                       setState(() {
                         name = nameController.text;
@@ -150,10 +191,21 @@ class _AddPageState extends State<AddPage> {
                       });
                     }
                   },
+
                   style: ButtonStyle(
                     backgroundColor: MaterialStateProperty.all(Colors.orange),
                   ),
-                  child: const Text('Platz speichern'),
+                    icon: isUploading
+                        ? Container(
+                      width: 24,
+                      height: 24,
+                      padding: const EdgeInsets.all(2.0),
+                      child: const CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 3,
+                      ),
+                    ) : const Icon(Icons.cloud_upload),
+                  label: const Text('Platz speichern'),
                 ),
               ],
             ),

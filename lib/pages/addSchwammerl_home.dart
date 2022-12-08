@@ -13,6 +13,7 @@ class AddSchwammerlPage extends StatefulWidget {
 
 class _AddSchwammerlPageState extends State<AddSchwammerlPage> {
   // Getting Student all Records
+
   final Stream<QuerySnapshot> carRecords =
   FirebaseFirestore.instance.collection('places').snapshots();
   // For Deleting Users
@@ -60,63 +61,60 @@ class _AddSchwammerlPageState extends State<AddSchwammerlPage> {
               child: SingleChildScrollView(
                 child: Table(
                   border: TableBorder.all(),
-                  columnWidths: const <int, TableColumnWidth>{
-                    1: FixedColumnWidth(150),
-                  },
                   defaultVerticalAlignment: TableCellVerticalAlignment.middle,
                   children: <TableRow>[
                     TableRow(
                       children: [
                         TableCell(
-                          child: Container(
-                            color: Colors.orange,
-                            child: Center(
-                              child: Text(
-                                'Name',
-                                style: txt,
+                            child: Container(
+                              color: Colors.orange,
+                              child: Center(
+                                child: Text(
+                                  'Name',
+                                  style: txt,
+                                ),
                               ),
                             ),
                           ),
-                        ),
                         TableCell(
-                          child: Container(
-                            color: Colors.orange,
-                            child: Center(
-                              child: Text(
-                                'Info',
-                                style: txt,
+                            child: Container(
+                              color: Colors.orange,
+                              child: Center(
+                                child: Text(
+                                  'Info',
+                                  style: txt,
+                                ),
                               ),
                             ),
                           ),
-                        ),
                         TableCell(
-                          child: Container(
-                            color: Colors.orange,
-                            child: Center(
-                              child: Text(
-                                'Bild',
-                                style: txt,
+                            child: Container(
+                              color: Colors.orange,
+                              child: Center(
+                                child: Text(
+                                  'Bild',
+                                  style: txt,
+                                ),
                               ),
                             ),
                           ),
-                        ),
                         TableCell(
-                          child: Container(
-                            color: Colors.orange,
-                            child: Center(
-                              child: Text(
-                                '',
-                                style: txt,
+                            child: Container(
+                              color: Colors.orange,
+                              child: Center(
+                                child: Text(
+                                  '',
+                                  style: txt,
+                                ),
                               ),
                             ),
-                          ),
                         ),
                       ],
                     ),
                     for (var i = 0; i < firebaseData.length; i++) ...[
-                      TableRow(
-                        children: [
-                          TableCell(
+                    TableRow(
+                      children: [
+                        TableCell(
                             child: SizedBox(
                               child: Center(
                                 child: Text(
@@ -125,8 +123,8 @@ class _AddSchwammerlPageState extends State<AddSchwammerlPage> {
                                 ),
                               ),
                             ),
-                          ),
-                          TableCell(
+                        ),
+                        TableCell(
                             child: SizedBox(
                               child: Center(
                                 child: Text(
@@ -135,10 +133,12 @@ class _AddSchwammerlPageState extends State<AddSchwammerlPage> {
                                 ),
                               ),
                             ),
-                          ),
-                          TableCell(
+                        ),
+                        TableCell(
                             child: SizedBox(
                               child: Column(
+                                mainAxisSize: MainAxisSize.max,
+                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                 children: [
                                   if(firebaseData[i]['image'] == "")
                                     const Text(''),
@@ -148,11 +148,12 @@ class _AddSchwammerlPageState extends State<AddSchwammerlPage> {
                                 ],
                               ),
                             ),
-                          ),
-                          TableCell(
+                        ),
+                        TableCell(
                             child: Row(
-                              children: [
-                                IconButton(
+                            children: [
+                              Flexible(
+                                child: IconButton(
                                   onPressed: () {
                                     Navigator.push(
                                       context,
@@ -168,7 +169,9 @@ class _AddSchwammerlPageState extends State<AddSchwammerlPage> {
                                     color: Colors.orange,
                                   ),
                                 ),
-                                IconButton(
+                              ),
+                              Flexible(
+                                child: IconButton(
                                   onPressed: () {
                                     _delete(firebaseData[i]['id']);
                                   },
@@ -177,17 +180,18 @@ class _AddSchwammerlPageState extends State<AddSchwammerlPage> {
                                     color: Colors.orange,
                                   ),
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                    ], //this is loop
-                  ],
-                ),
+                        ),
+                      ],
+                    ),
+                  ], //this is loop
+                ],
               ),
             ),
-          );
-        });
+          ),
+        );
+      });
   }
 }

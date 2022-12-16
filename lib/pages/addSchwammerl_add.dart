@@ -1,12 +1,10 @@
 import 'dart:io';
-
 import 'package:schwammerlapp/constraints.dart/textfield.dart';
+import 'package:schwammerlapp/constraints.dart/textfieldNoVal.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-
 import 'dart:async';
 import 'package:geolocator/geolocator.dart';
-
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
@@ -14,17 +12,11 @@ class AddPage extends StatefulWidget {
 
   const AddPage({Key? key}) : super(key: key);
 
-
   @override
   State<AddPage> createState() => _AddPageState();
 }
 
 class _AddPageState extends State<AddPage> {
-
-  GlobalKey<FormState> key = GlobalKey();
-
-  CollectionReference _reference =
-  FirebaseFirestore.instance.collection('places');
 
   //form key
   final _formkey = GlobalKey<FormState>();
@@ -32,13 +24,13 @@ class _AddPageState extends State<AddPage> {
   // text for textfield
   String name = '';
   String info = '';
-
   String imageUrl = '';
 
   double long = 0;
   double lat = 0;
-  bool isUploading = false;
   late Position position;
+
+  bool isUploading = false;
 
   final nameController = TextEditingController();
   final infoController = TextEditingController();
@@ -46,7 +38,6 @@ class _AddPageState extends State<AddPage> {
   @override
   void initState() {
     getLocation();
-
   }
 
   _clearText() {
@@ -62,7 +53,7 @@ class _AddPageState extends State<AddPage> {
       {
         return addSchwammerl
             .add({'name': name, 'info': info, 'coords' : GeoPoint(lat, long), 'image' : imageUrl})
-            .then((value) => print('added Schwammerl'))
+            .then((value) => print('added Schwammerl Place'))
             .catchError((_) => print('Something Error In registering Schwammerl'));
       }
       return null;
@@ -73,13 +64,6 @@ class _AddPageState extends State<AddPage> {
 
     long = position.longitude;
     lat = position.latitude;
-  }
-
-  @override
-  void dispose() {
-    nameController.dispose();
-    infoController.dispose();
-    super.dispose();
   }
 
   @override
@@ -96,16 +80,15 @@ class _AddPageState extends State<AddPage> {
               controller: nameController,
               labettxt: 'Name',
             ),
-            CustomTextEditField(
+            CustomTextEditFieldNoVal(
               controller: infoController,
               labettxt: 'Info',
-              valid: true,
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton(
-                  onPressed: dispose,
+                  onPressed: _clearText,
                   style: ButtonStyle(
                     backgroundColor: MaterialStateProperty.all(Colors.orange),
                   ),
@@ -115,9 +98,9 @@ class _AddPageState extends State<AddPage> {
                     onPressed: () async{
                       PickedFile? pickedFile = await ImagePicker().getImage(
                       source: ImageSource.camera,
-                      maxHeight: 1920,
-                      maxWidth: 1080,
-                      imageQuality: 50,
+                        maxWidth: 1000,
+                        maxHeight: 1600,
+                        imageQuality: 50,
                       );
                       if (pickedFile != null) {
                       File imageFileCamera = File(pickedFile.path);
@@ -148,9 +131,10 @@ class _AddPageState extends State<AddPage> {
                     onPressed: () async {
                         PickedFile? pickedFile = await ImagePicker().getImage(
                         source: ImageSource.gallery,
-                        maxWidth: 1800,
-                        maxHeight: 1800,
-                      );
+                        maxWidth: 1000,
+                        maxHeight: 1600,
+                        imageQuality: 50,
+                        );
                       if (pickedFile != null) {
                         File imageFileGallery = File(pickedFile.path);
 
@@ -176,11 +160,9 @@ class _AddPageState extends State<AddPage> {
                         setState(() => isUploading = false);
                       }
                       },
-                    icon: Icon(Icons.folder_copy_rounded)),
+                    icon: const Icon(Icons.folder_copy_rounded)),
                 ElevatedButton.icon(
-
-                  onPressed: isUploading ?
-                     null :() {
+                  onPressed: isUploading ? null :() {
                     if (_formkey.currentState!.validate()) {
                       setState(() {
                         name = nameController.text;
@@ -191,12 +173,9 @@ class _AddPageState extends State<AddPage> {
                       });
                     }
                   },
-
                   style: ButtonStyle(
                     backgroundColor: MaterialStateProperty.all(Colors.orange),
-                  ),
-                    icon: isUploading
-                        ? Container(
+                  ), icon: isUploading ? Container(
                       width: 24,
                       height: 24,
                       padding: const EdgeInsets.all(2.0),
@@ -209,7 +188,31 @@ class _AddPageState extends State<AddPage> {
                 ),
               ],
             ),
-          ],
+            SizedBox(height: 20),
+            AspectRatio(
+              aspectRatio: 1,
+                      child: Column(
+                        children: [
+                          SizedBox(
+                              width: 294,
+                              height: 392,
+                              child: SingleChildScrollView(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  if(imageUrl == "")
+                                    const Text(''),
+                                  if(imageUrl != "")
+                                    Image.network(imageUrl)
+                                ],
+                              ),
+                            )
+                          )
+                        ],
+                      )
+                    )
+          ]
         ),
       ),
     );

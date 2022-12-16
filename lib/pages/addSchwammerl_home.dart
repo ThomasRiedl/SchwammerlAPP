@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:schwammerlapp/pages/addSchwammerl_add.dart';
 import 'package:schwammerlapp/constraints.dart/textstyle.dart';
 import 'package:schwammerlapp/pages/addSchwammerl_edit.dart';
 import 'package:flutter/material.dart';
@@ -14,13 +13,13 @@ class AddSchwammerlPage extends StatefulWidget {
 class _AddSchwammerlPageState extends State<AddSchwammerlPage> {
   // Getting Student all Records
 
-  final Stream<QuerySnapshot> carRecords =
+  final Stream<QuerySnapshot> schwammerlRecords =
   FirebaseFirestore.instance.collection('places').snapshots();
   // For Deleting Users
-  CollectionReference delCars =
+  CollectionReference delSchwammerl =
   FirebaseFirestore.instance.collection('places');
   Future<void> _delete(id) {
-    return delCars
+    return delSchwammerl
         .doc(id)
         .delete()
         .then((value) => print('Schwammerl Deleted'))
@@ -34,7 +33,7 @@ class _AddSchwammerlPageState extends State<AddSchwammerlPage> {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
-        stream: carRecords,
+        stream: schwammerlRecords,
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (snapshot.hasError) {
             print('Something Wrong in HomePage');

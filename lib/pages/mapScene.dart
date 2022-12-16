@@ -37,6 +37,7 @@ class _MapSceneState extends State<MapScene> {
 
   final User user = Auth().currentUser;
 
+  Set<Marker> markers = Set();
   List<LatLng> routePoints = [];
   LatLng livePosition;
   double polylineDistance = 0;
@@ -50,30 +51,31 @@ class _MapSceneState extends State<MapScene> {
   Map<PolylineId, Polyline> polylines = {};
   PolylinePoints polylinePoints = PolylinePoints();
 
-  GoogleMapController mapController;
-  void _onMapCreated(GoogleMapController controller) {
-    mapController = controller;
-  }
-
   Marker origin;
   Marker destination;
   Marker lifeTracking;
   String travelDistance;
   String travelTime;
 
+  GoogleMapController mapController;
+
+  void _onMapCreated(GoogleMapController controller) {
+    mapController = controller;
+  }
+
   @override
   void initState() {
     wf = WeatherFactory(weatherAPI, language: Language.GERMAN);
     checkGps();
-  }
-
-
-  Future<void> signOut() async {
-    await Auth().signOut();
+    markers.clear();
   }
 
   Widget _title() {
     return const Text('SchwammerlAPP');
+  }
+
+  Future<void> signOut() async {
+    await Auth().signOut();
   }
 
   Widget _signOutButton() {
@@ -119,20 +121,46 @@ class _MapSceneState extends State<MapScene> {
     );
   }
 
-  Widget _showSchwammerlPlacesOnMap(BuildContext context) {
-    return ElevatedButton(
-      onPressed: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const AddSchwammerlPage()),
-        );
-      },
-      child: const Text('Schwammerlplätze auf Karte ansehen'),
-    );
+  Widget _showPlacesOnMapButton() {
+      return ElevatedButton(
+        onPressed:(){
+          if(markers.isEmpty)
+          {
+            getGeopoints();
+          }
+          else
+          {
+            markers.clear();
+            setState(() {
+
+            });
+          }
+        },
+        child: Text(markers.isEmpty ? 'Schwammerlplätze auf Karte anzeigen' : 'Schwammerlplätze auf Karte verdecken'),
+
+
+      );
   }
 
-  getAddress() async
-  {
+  getGeopoints() {
+    markers.clear();
+    var coordinates = FirebaseFirestore.instance.collection('places');
+    coordinates.snapshots().listen((querySnapshot) {
+      querySnapshot.docs.forEach((doc) {
+        var geopoint = doc.data()['coords'] as GeoPoint;
+        markers.add(Marker(
+          markerId: MarkerId(doc.id),
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+          position: LatLng(geopoint.latitude, geopoint.longitude),
+        ));
+        setState(() {
+          //refresh UI
+        });
+      });
+    });
+  }
+
+  getAddress() async {
     List<Placemark> placemarks = await placemarkFromCoordinates(lat, long);
     //convertToAddress();
 
@@ -213,9 +241,6 @@ class _MapSceneState extends State<MapScene> {
       long = position.longitude;
       lat = position.latitude;
 
-      final startLat = lat;
-      final startLong = long;
-
       routePoints.add(LatLng(lat,long));
       polylineDistance += calculateDistance(routePoints[routePoints.length-2].latitude, routePoints[routePoints.length-2].longitude, routePoints[routePoints.length-1].latitude, routePoints[routePoints.length-1].longitude);
 
@@ -228,39 +253,11 @@ class _MapSceneState extends State<MapScene> {
 
       mapController.moveCamera(update);
 
+
       setState(() {
         //refresh UI on update
-
       });
     });
-  }
-
-  void _addMarker(LatLng pos) async {
-    if (origin == null || (origin != null && destination != null)) {
-      // Origin is not set OR Origin/Destination are both set
-      // Set origin
-      setState(() {
-        origin = Marker(
-          markerId: const MarkerId('origin'),
-          infoWindow: const InfoWindow(title: 'Origin'),
-          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
-          position: pos,
-        );
-        // Reset destination
-        destination = null;
-      });
-    } else {
-      // Origin is already set
-      // Set destination
-      setState(() {
-        destination = Marker(
-          markerId: const MarkerId('destination'),
-          infoWindow: const InfoWindow(title: 'Destination'),
-          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
-          position: pos,
-        );
-      });
-    }
   }
 
   checkGps() async {
@@ -313,29 +310,20 @@ class _MapSceneState extends State<MapScene> {
               child: GoogleMap(
                   onMapCreated: _onMapCreated,
                   myLocationButtonEnabled: true,
-                  markers: {
-                    lifeTracking = Marker(
-                      markerId: const MarkerId('lifeTracking'),
-                      infoWindow: const InfoWindow(title: 'LifeTracking'),
-                      icon: BitmapDescriptor.defaultMarkerWithHue(
-                          BitmapDescriptor.hueRed),
-                      position: LatLng(lat, long),
-                    ),
-                    if (origin != null) origin,
-                    if (destination != null) destination,
-                  },
-                  onLongPress: _addMarker,
+                  markers: markers,
                   initialCameraPosition: _initialPosition
               ),
             ),
+            SizedBox(height: 15),
             Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 _addSchwammerlPlace(context),
                 _showSchwammerlPlaces(context),
-                _showSchwammerlPlacesOnMap(context),
                 _showSchwammerlInfoButton(context),
+
+                _showPlacesOnMapButton(),
                 _signOutButton(),
               ],
             ),

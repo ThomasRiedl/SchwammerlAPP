@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:image_picker/image_picker.dart';
 
 class EditPage extends StatefulWidget {
   const EditPage({
@@ -13,18 +16,24 @@ class EditPage extends StatefulWidget {
 }
 
 class _EditPageState extends State<EditPage> {
-  //form key
+
   final _formkey = GlobalKey<FormState>();
-  //Update User
-  CollectionReference updateCar =
+
+  double long = 0;
+  double lat = 0;
+
+  bool isUploading = false;
+
+  CollectionReference updateSchwammerl =
       FirebaseFirestore.instance.collection('places');
 
-  Future<void> _updateUser(id, name, info) {
-    return updateCar
+  Future<void> _updateUser(id, name, info, imageUrl) {
+    return updateSchwammerl
         .doc(id)
         .update({
           'name': name,
           'info': info,
+          'image': imageUrl,
         })
         .then((value) => print("Schwammerl Updated"))
         .catchError((error) => print("Failed to update Schwammerl: $error"));
@@ -50,6 +59,7 @@ class _EditPageState extends State<EditPage> {
           var data = snapshot.data?.data();
           var name = data!['name'];
           var info = data['info'];
+          String imageUrl = data['imageUrl'];
           return Scaffold(
             appBar: AppBar(
               title: const Text('Schwammerlplätze'),
@@ -107,27 +117,121 @@ class _EditPageState extends State<EditPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      ElevatedButton(
-                        onPressed: () {},
-                        style: ButtonStyle(
-                          backgroundColor:
-                          MaterialStateProperty.all(Colors.orange),
-                        ),
-                        child: const Text('Reset'),
-                      ),
-                      ElevatedButton(
-                        onPressed: () {
+                      IconButton(
+                          onPressed: () async{
+                            PickedFile? pickedFile = await ImagePicker().getImage(
+                              source: ImageSource.camera,
+                              maxWidth: 1000,
+                              maxHeight: 1600,
+                              imageQuality: 50,
+                            );
+                            if (pickedFile != null) {
+                              File imageFileCamera = File(pickedFile.path);
+
+                              String uniqueFileName =
+                              DateTime.now().millisecondsSinceEpoch.toString();
+
+                              Reference referenceRoot = FirebaseStorage.instance.ref();
+                              Reference referenceDirImages =
+                              referenceRoot.child('images');
+
+                              Reference referenceImageToUpload =
+                              referenceDirImages.child(uniqueFileName);
+
+                              try {
+                                setState(() => isUploading = true);
+                                UploadTask uploadTask =  referenceImageToUpload.putFile(File(imageFileCamera!.path));
+
+                                imageUrl = await (await uploadTask).ref.getDownloadURL();
+                              } catch (error) {
+                                setState(() => isUploading = false);
+                              }
+                              setState(() => isUploading = false);
+                            }
+                          },
+                          icon: Icon(Icons.camera_alt)),
+                      IconButton(
+                          onPressed: () async {
+                            PickedFile? pickedFile = await ImagePicker().getImage(
+                              source: ImageSource.gallery,
+                              maxWidth: 1000,
+                              maxHeight: 1600,
+                              imageQuality: 50,
+                            );
+                            if (pickedFile != null) {
+                              File imageFileGallery = File(pickedFile.path);
+
+                              String uniqueFileName =
+                              DateTime.now().millisecondsSinceEpoch.toString();
+
+                              Reference referenceRoot = FirebaseStorage.instance.ref();
+                              Reference referenceDirImages =
+                              referenceRoot.child('images');
+
+                              Reference referenceImageToUpload =
+                              referenceDirImages.child(uniqueFileName);
+
+                              try {
+                                setState(() => isUploading = true);
+                                UploadTask uploadTask =  referenceImageToUpload.putFile(File(imageFileGallery!.path));
+
+                                imageUrl = await (await uploadTask).ref.getDownloadURL();
+
+                              } catch (error) {
+                                setState(() => isUploading = false);
+                              }
+                              setState(() => isUploading = false);
+                            }
+                          },
+                          icon: const Icon(Icons.folder_copy_rounded)),
+                      ElevatedButton.icon(
+                        onPressed: isUploading ? null :() {
                           if (_formkey.currentState!.validate()) {
-                            setState(() {
-                              _updateUser(widget.docID, name, info);
-                              Navigator.pop(context);
-                            });
+                          setState(() {
+                          _updateUser(widget.docID, name, info, imageUrl);
+                          Navigator.pop(context);
+                          });
                           }
                         },
-                        child: const Text('Update'),
+                        style: ButtonStyle(
+                          backgroundColor: MaterialStateProperty.all(Colors.orange),
+                        ), icon: isUploading ? Container(
+                        width: 24,
+                        height: 24,
+                        padding: const EdgeInsets.all(2.0),
+                        child: const CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 3,
+                        ),
+                      ) : const Icon(Icons.cloud_upload),
+                        label: const Text('Update'),
                       ),
                     ],
                   ),
+                  SizedBox(height: 20),
+                  AspectRatio(
+                      aspectRatio: 1,
+                      child: Column(
+                        children: [
+                          SizedBox(
+                              width: 294,
+                              height: 392,
+                              child: SingleChildScrollView(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    if(imageUrl == "")
+                                      const Text(''),
+                                    if(imageUrl != "")
+                                      Image.network("a")
+                                  ],
+                                ),
+                              )
+                          )
+                        ],
+                      )
+                  )
                 ],
               ),
             ),

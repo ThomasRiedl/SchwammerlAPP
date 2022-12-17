@@ -66,6 +66,27 @@ class _AddPageState extends State<AddPage> {
     lat = position.latitude;
   }
 
+  Widget _deleteImageButton() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center ,//Center Column contents vertically,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        ElevatedButton(
+          onPressed: _deleteImage,
+          child: const Text('Bild Entfernen'),
+        ),
+      ],
+    );
+  }
+
+  _deleteImage()
+  {
+    imageUrl = "";
+    setState(() {
+
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -211,7 +232,9 @@ class _AddPageState extends State<AddPage> {
                           )
                         ],
                       )
-                    )
+                    ),
+            SizedBox(height: 10),
+            _deleteImageButton(),
           ]
         ),
       ),

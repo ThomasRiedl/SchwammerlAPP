@@ -5,6 +5,8 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
+//Bug Textfelder werden zurückgesetzt bei IconButtons wegen setState
+
 class EditPage extends StatefulWidget {
   const EditPage({
     Key? key,
@@ -22,21 +24,93 @@ class _EditPageState extends State<EditPage> {
   double long = 0;
   double lat = 0;
 
+  var imageUrl = '';
+  String imageUrlNew = '';
+
+  String imageUrlOld = '';
+  String nameOld = '';
+  String infoOld = '';
+
+  int oldImageCounter = 1;
+
   bool isUploading = false;
 
   CollectionReference updateSchwammerl =
       FirebaseFirestore.instance.collection('places');
-
-  Future<void> _updateUser(id, name, info, imageUrl) {
+  Future<void> _updateUser(id, name, info, imageUrlNew) {
     return updateSchwammerl
         .doc(id)
         .update({
           'name': name,
           'info': info,
-          'image': imageUrl,
+          'image': imageUrlNew,
         })
         .then((value) => print("Schwammerl Updated"))
         .catchError((error) => print("Failed to update Schwammerl: $error"));
+  }
+
+  Future<void> _updateImage(id, imageUrlNew) {
+    return updateSchwammerl
+        .doc(id)
+        .update({
+      'image': imageUrlNew,
+    })
+        .then((value) => print("Schwammerl Updated"))
+        .catchError((error) => print("Failed to update Schwammerl: $error"));
+  }
+
+
+  Widget _pickImage()
+  {
+      if(imageUrl == "" && imageUrlNew == "" || isUploading)
+      {
+        return const Text("");
+      }
+      if(imageUrl != "" && imageUrlNew == "")
+      {
+        return Image.network(imageUrl);
+      }
+      if(imageUrlNew == "")
+      {
+        return const Text("");
+      }
+      if(imageUrlNew != "")
+      {
+        imageUrl = "";
+        return Image.network(imageUrlNew);
+      }
+      else
+      {
+        return const Text("");
+      }
+  }
+
+  Widget _deleteImageButton() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center ,//Center Column contents vertically,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        ElevatedButton(
+          onPressed: _deleteImage,
+          child: const Text('Bild Entfernen'),
+        ),
+      ],
+    );
+  }
+
+  _deleteImage()
+  {
+    future: FirebaseFirestore.instance
+        .collection('places')
+        .doc(widget.docID)
+        .get();
+
+      imageUrlNew = "";
+      imageUrl = "";
+      _updateImage(widget.docID, imageUrlNew);
+      setState(() {
+
+      });
   }
 
   @override
@@ -59,7 +133,16 @@ class _EditPageState extends State<EditPage> {
           var data = snapshot.data?.data();
           var name = data!['name'];
           var info = data['info'];
-          String imageUrl = data['imageUrl'];
+          imageUrl = data['image'];
+
+          if(oldImageCounter != 0)
+          {
+            imageUrlOld = imageUrl;
+            oldImageCounter = oldImageCounter -1;
+          }
+
+          nameOld = name;
+          infoOld = info;
           return Scaffold(
             appBar: AppBar(
               title: const Text('Schwammerlplätze'),
@@ -117,6 +200,20 @@ class _EditPageState extends State<EditPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
+                      ElevatedButton(
+                        onPressed:() {
+                          if (_formkey.currentState!.validate()) {
+                            setState(() {
+                              _updateUser(widget.docID, nameOld, infoOld, imageUrlOld);
+                              Navigator.pop(context);
+                            });
+                          }
+                        },
+                        style: ButtonStyle(
+                          backgroundColor: MaterialStateProperty.all(Colors.orange),
+                        ),
+                        child: const Text('Abrechen'),
+                      ),
                       IconButton(
                           onPressed: () async{
                             PickedFile? pickedFile = await ImagePicker().getImage(
@@ -142,14 +239,15 @@ class _EditPageState extends State<EditPage> {
                                 setState(() => isUploading = true);
                                 UploadTask uploadTask =  referenceImageToUpload.putFile(File(imageFileCamera!.path));
 
-                                imageUrl = await (await uploadTask).ref.getDownloadURL();
+                                imageUrlNew = await (await uploadTask).ref.getDownloadURL();
                               } catch (error) {
                                 setState(() => isUploading = false);
                               }
                               setState(() => isUploading = false);
                             }
                           },
-                          icon: Icon(Icons.camera_alt)),
+                          icon: Icon(Icons.camera_alt),
+                                color: Colors.black,),
                       IconButton(
                           onPressed: () async {
                             PickedFile? pickedFile = await ImagePicker().getImage(
@@ -175,7 +273,7 @@ class _EditPageState extends State<EditPage> {
                                 setState(() => isUploading = true);
                                 UploadTask uploadTask =  referenceImageToUpload.putFile(File(imageFileGallery!.path));
 
-                                imageUrl = await (await uploadTask).ref.getDownloadURL();
+                                imageUrlNew = await (await uploadTask).ref.getDownloadURL();
 
                               } catch (error) {
                                 setState(() => isUploading = false);
@@ -183,12 +281,17 @@ class _EditPageState extends State<EditPage> {
                               setState(() => isUploading = false);
                             }
                           },
-                          icon: const Icon(Icons.folder_copy_rounded)),
+                          icon: const Icon(Icons.folder_copy_rounded),
+                        color: Colors.black,),
                       ElevatedButton.icon(
                         onPressed: isUploading ? null :() {
                           if (_formkey.currentState!.validate()) {
                           setState(() {
-                          _updateUser(widget.docID, name, info, imageUrl);
+                            if(imageUrl == "")
+                            {
+                              imageUrl = imageUrlNew;
+                            }
+                            _updateUser(widget.docID, name, info, imageUrl);
                           Navigator.pop(context);
                           });
                           }
@@ -218,20 +321,17 @@ class _EditPageState extends State<EditPage> {
                               height: 392,
                               child: SingleChildScrollView(
                                 child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    if(imageUrl == "")
-                                      const Text(''),
-                                    if(imageUrl != "")
-                                      Image.network("a")
-                                  ],
+                                    children: <Widget>[
+                                      _pickImage(),
+                                    ]
                                 ),
                               )
                           )
                         ],
-                      )
-                  )
+                      ),
+          ),
+                  SizedBox(height: 10),
+                  _deleteImageButton(),
                 ],
               ),
             ),

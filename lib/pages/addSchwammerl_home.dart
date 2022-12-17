@@ -165,7 +165,7 @@ class _AddSchwammerlPageState extends State<AddSchwammerlPage> {
                                   },
                                   icon: const Icon(
                                     Icons.edit,
-                                    color: Colors.orange,
+                                    color: Colors.black,
                                   ),
                                 ),
                               ),
@@ -176,7 +176,7 @@ class _AddSchwammerlPageState extends State<AddSchwammerlPage> {
                                   },
                                   icon: const Icon(
                                     Icons.delete,
-                                    color: Colors.orange,
+                                    color: Colors.black,
                                   ),
                                 ),
                               ),

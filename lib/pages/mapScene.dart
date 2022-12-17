@@ -137,8 +137,6 @@ class _MapSceneState extends State<MapScene> {
           }
         },
         child: Text(markers.isEmpty ? 'Schwammerlplätze auf Karte anzeigen' : 'Schwammerlplätze auf Karte verdecken'),
-
-
       );
   }
 
@@ -322,7 +320,6 @@ class _MapSceneState extends State<MapScene> {
                 _addSchwammerlPlace(context),
                 _showSchwammerlPlaces(context),
                 _showSchwammerlInfoButton(context),
-
                 _showPlacesOnMapButton(),
                 _signOutButton(),
               ],

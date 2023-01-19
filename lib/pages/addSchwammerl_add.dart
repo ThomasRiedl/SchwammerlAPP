@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:schwammerlapp/constraints.dart/textfield.dart';
 import 'package:schwammerlapp/constraints.dart/textfieldNoVal.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -18,10 +19,10 @@ class AddPage extends StatefulWidget {
 
 class _AddPageState extends State<AddPage> {
 
-  //form key
   final _formkey = GlobalKey<FormState>();
 
-  // text for textfield
+  final currentUser = FirebaseAuth.instance.currentUser!.uid.toString();
+
   String name = '';
   String info = '';
   String imageUrl = '';
@@ -45,15 +46,15 @@ class _AddPageState extends State<AddPage> {
     infoController.clear();
   }
 
-  //Registering Users
   CollectionReference addSchwammerl =
-      FirebaseFirestore.instance.collection('places');
+      FirebaseFirestore.instance.collection('users').doc(FirebaseAuth.instance.currentUser!.uid.toString()).collection('locations');
+
   Future<void>? _registerSchwammerl() {
     while(!isUploading)
       {
         return addSchwammerl
             .add({'name': name, 'info': info, 'coords' : GeoPoint(lat, long), 'image' : imageUrl})
-            .then((value) => print('added Schwammerl Place'))
+            .then((value) => print('Schwammerl Place added'))
             .catchError((_) => print('Something Error In registering Schwammerl'));
       }
       return null;

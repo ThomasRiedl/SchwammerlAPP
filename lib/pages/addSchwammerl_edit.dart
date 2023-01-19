@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -36,7 +37,8 @@ class _EditPageState extends State<EditPage> {
   bool isUploading = false;
 
   CollectionReference updateSchwammerl =
-      FirebaseFirestore.instance.collection('places');
+    FirebaseFirestore.instance.collection('users').doc(FirebaseAuth.instance.currentUser!.uid.toString()).collection('locations');
+
   Future<void> _updateUser(id, name, info, imageUrlNew) {
     return updateSchwammerl
         .doc(id)
@@ -58,7 +60,6 @@ class _EditPageState extends State<EditPage> {
         .then((value) => print("Schwammerl Updated"))
         .catchError((error) => print("Failed to update Schwammerl: $error"));
   }
-
 
   Widget _pickImage()
   {
@@ -101,7 +102,7 @@ class _EditPageState extends State<EditPage> {
   _deleteImage()
   {
     future: FirebaseFirestore.instance
-        .collection('places')
+        .collection('users').doc(FirebaseAuth.instance.currentUser!.uid.toString()).collection('locations')
         .doc(widget.docID)
         .get();
 
@@ -117,7 +118,7 @@ class _EditPageState extends State<EditPage> {
   Widget build(BuildContext context) {
     return FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
         future: FirebaseFirestore.instance
-            .collection('places')
+            .collection('users').doc(FirebaseAuth.instance.currentUser!.uid.toString()).collection('locations')
             .doc(widget.docID)
             .get(),
         builder: (context, snapshot) {
@@ -129,20 +130,17 @@ class _EditPageState extends State<EditPage> {
               child: CircularProgressIndicator(),
             );
           }
-          //Getting Data From FireStore
           var data = snapshot.data?.data();
           var name = data!['name'];
           var info = data['info'];
           imageUrl = data['image'];
-
+          nameOld = name;
+          infoOld = info;
           if(oldImageCounter != 0)
           {
             imageUrlOld = imageUrl;
             oldImageCounter = oldImageCounter -1;
           }
-
-          nameOld = name;
-          infoOld = info;
           return Scaffold(
             appBar: AppBar(
               title: const Text('Schwammerlplätze'),

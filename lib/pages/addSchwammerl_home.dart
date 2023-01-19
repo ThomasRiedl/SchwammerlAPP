@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:schwammerlapp/constraints.dart/textstyle.dart';
 import 'package:schwammerlapp/pages/addSchwammerl_edit.dart';
 import 'package:flutter/material.dart';
@@ -14,10 +15,10 @@ class _AddSchwammerlPageState extends State<AddSchwammerlPage> {
   // Getting Student all Records
 
   final Stream<QuerySnapshot> schwammerlRecords =
-  FirebaseFirestore.instance.collection('places').snapshots();
+  FirebaseFirestore.instance.collection('users').doc(FirebaseAuth.instance.currentUser!.uid.toString()).collection('locations').snapshots();
   // For Deleting Users
   CollectionReference delSchwammerl =
-  FirebaseFirestore.instance.collection('places');
+  FirebaseFirestore.instance.collection('users').doc(FirebaseAuth.instance.currentUser!.uid.toString()).collection('locations');
   Future<void> _delete(id) {
     return delSchwammerl
         .doc(id)

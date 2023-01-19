@@ -59,6 +59,8 @@ class _MapSceneState extends State<MapScene> {
 
   GoogleMapController mapController;
 
+  int focusCamerOnce = 1;
+
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
   }
@@ -142,10 +144,11 @@ class _MapSceneState extends State<MapScene> {
 
   getGeopoints() {
     markers.clear();
-    var coordinates = FirebaseFirestore.instance.collection('places');
+    var coordinates = FirebaseFirestore.instance.collection('users').doc(FirebaseAuth.instance.currentUser.uid.toString()).collection('locations');
     coordinates.snapshots().listen((querySnapshot) {
       querySnapshot.docs.forEach((doc) {
         var geopoint = doc.data()['coords'] as GeoPoint;
+        print(geopoint);
         markers.add(Marker(
           markerId: MarkerId(doc.id),
           icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
@@ -244,13 +247,16 @@ class _MapSceneState extends State<MapScene> {
 
       convertToAddress();
 
-      var newPosition = CameraPosition(
-          target: LatLng(position.latitude, position.longitude),
-          zoom: 15);
-      CameraUpdate update =CameraUpdate.newCameraPosition(newPosition);
+      if(focusCamerOnce == 1)
+      {
+        var newPosition = CameraPosition(
+            target: LatLng(position.latitude, position.longitude),
+            zoom: 15);
+        CameraUpdate update =CameraUpdate.newCameraPosition(newPosition);
 
-      mapController.moveCamera(update);
-
+        mapController.moveCamera(update);
+        focusCamerOnce--;
+      }
 
       setState(() {
         //refresh UI on update
@@ -301,7 +307,8 @@ class _MapSceneState extends State<MapScene> {
           title: _title(),
           backgroundColor: Colors.orange,
       ),
-      body: Column(
+      body: SingleChildScrollView(
+        child: Column(
           children: [
             AspectRatio(
               aspectRatio: 1,
@@ -325,6 +332,7 @@ class _MapSceneState extends State<MapScene> {
               ],
             ),
           ]
+      ),
       ),
     );
   }

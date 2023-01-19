@@ -1,6 +1,12 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:image_picker/image_picker.dart';
+
+//Bug Textfelder werden zurückgesetzt bei IconButtons wegen setState
 
 class EditPage extends StatefulWidget {
   const EditPage({
@@ -13,28 +19,106 @@ class EditPage extends StatefulWidget {
 }
 
 class _EditPageState extends State<EditPage> {
-  //form key
-  final _formkey = GlobalKey<FormState>();
-  //Update User
-  CollectionReference updateCar =
-      FirebaseFirestore.instance.collection('places');
 
-  Future<void> _updateUser(id, name, info) {
-    return updateCar
+  final _formkey = GlobalKey<FormState>();
+
+  double long = 0;
+  double lat = 0;
+
+  var imageUrl = '';
+  String imageUrlNew = '';
+
+  String imageUrlOld = '';
+  String nameOld = '';
+  String infoOld = '';
+
+  int oldImageCounter = 1;
+
+  bool isUploading = false;
+
+  CollectionReference updateSchwammerl =
+    FirebaseFirestore.instance.collection('users').doc(FirebaseAuth.instance.currentUser!.uid.toString()).collection('locations');
+
+  Future<void> _updateUser(id, name, info, imageUrlNew) {
+    return updateSchwammerl
         .doc(id)
         .update({
           'name': name,
           'info': info,
+          'image': imageUrlNew,
         })
         .then((value) => print("Schwammerl Updated"))
         .catchError((error) => print("Failed to update Schwammerl: $error"));
+  }
+
+  Future<void> _updateImage(id, imageUrlNew) {
+    return updateSchwammerl
+        .doc(id)
+        .update({
+      'image': imageUrlNew,
+    })
+        .then((value) => print("Schwammerl Updated"))
+        .catchError((error) => print("Failed to update Schwammerl: $error"));
+  }
+
+  Widget _pickImage()
+  {
+      if(imageUrl == "" && imageUrlNew == "" || isUploading)
+      {
+        return const Text("");
+      }
+      if(imageUrl != "" && imageUrlNew == "")
+      {
+        return Image.network(imageUrl);
+      }
+      if(imageUrlNew == "")
+      {
+        return const Text("");
+      }
+      if(imageUrlNew != "")
+      {
+        imageUrl = "";
+        return Image.network(imageUrlNew);
+      }
+      else
+      {
+        return const Text("");
+      }
+  }
+
+  Widget _deleteImageButton() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center ,//Center Column contents vertically,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        ElevatedButton(
+          onPressed: _deleteImage,
+          child: const Text('Bild Entfernen'),
+        ),
+      ],
+    );
+  }
+
+  _deleteImage()
+  {
+    future: FirebaseFirestore.instance
+        .collection('users').doc(FirebaseAuth.instance.currentUser!.uid.toString()).collection('locations')
+        .doc(widget.docID)
+        .get();
+
+      imageUrlNew = "";
+      imageUrl = "";
+      _updateImage(widget.docID, imageUrlNew);
+      setState(() {
+
+      });
   }
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
         future: FirebaseFirestore.instance
-            .collection('places')
+            .collection('users').doc(FirebaseAuth.instance.currentUser!.uid.toString()).collection('locations')
             .doc(widget.docID)
             .get(),
         builder: (context, snapshot) {
@@ -46,10 +130,17 @@ class _EditPageState extends State<EditPage> {
               child: CircularProgressIndicator(),
             );
           }
-          //Getting Data From FireStore
           var data = snapshot.data?.data();
           var name = data!['name'];
           var info = data['info'];
+          imageUrl = data['image'];
+          nameOld = name;
+          infoOld = info;
+          if(oldImageCounter != 0)
+          {
+            imageUrlOld = imageUrl;
+            oldImageCounter = oldImageCounter -1;
+          }
           return Scaffold(
             appBar: AppBar(
               title: const Text('Schwammerlplätze'),
@@ -108,26 +199,137 @@ class _EditPageState extends State<EditPage> {
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       ElevatedButton(
-                        onPressed: () {},
-                        style: ButtonStyle(
-                          backgroundColor:
-                          MaterialStateProperty.all(Colors.orange),
-                        ),
-                        child: const Text('Reset'),
-                      ),
-                      ElevatedButton(
-                        onPressed: () {
+                        onPressed:() {
                           if (_formkey.currentState!.validate()) {
                             setState(() {
-                              _updateUser(widget.docID, name, info);
+                              _updateUser(widget.docID, nameOld, infoOld, imageUrlOld);
                               Navigator.pop(context);
                             });
                           }
                         },
-                        child: const Text('Update'),
+                        style: ButtonStyle(
+                          backgroundColor: MaterialStateProperty.all(Colors.orange),
+                        ),
+                        child: const Text('Abrechen'),
+                      ),
+                      IconButton(
+                          onPressed: () async{
+                            PickedFile? pickedFile = await ImagePicker().getImage(
+                              source: ImageSource.camera,
+                              maxWidth: 1000,
+                              maxHeight: 1600,
+                              imageQuality: 50,
+                            );
+                            if (pickedFile != null) {
+                              File imageFileCamera = File(pickedFile.path);
+
+                              String uniqueFileName =
+                              DateTime.now().millisecondsSinceEpoch.toString();
+
+                              Reference referenceRoot = FirebaseStorage.instance.ref();
+                              Reference referenceDirImages =
+                              referenceRoot.child('images');
+
+                              Reference referenceImageToUpload =
+                              referenceDirImages.child(uniqueFileName);
+
+                              try {
+                                setState(() => isUploading = true);
+                                UploadTask uploadTask =  referenceImageToUpload.putFile(File(imageFileCamera!.path));
+
+                                imageUrlNew = await (await uploadTask).ref.getDownloadURL();
+                              } catch (error) {
+                                setState(() => isUploading = false);
+                              }
+                              setState(() => isUploading = false);
+                            }
+                          },
+                          icon: Icon(Icons.camera_alt),
+                                color: Colors.black,),
+                      IconButton(
+                          onPressed: () async {
+                            PickedFile? pickedFile = await ImagePicker().getImage(
+                              source: ImageSource.gallery,
+                              maxWidth: 1000,
+                              maxHeight: 1600,
+                              imageQuality: 50,
+                            );
+                            if (pickedFile != null) {
+                              File imageFileGallery = File(pickedFile.path);
+
+                              String uniqueFileName =
+                              DateTime.now().millisecondsSinceEpoch.toString();
+
+                              Reference referenceRoot = FirebaseStorage.instance.ref();
+                              Reference referenceDirImages =
+                              referenceRoot.child('images');
+
+                              Reference referenceImageToUpload =
+                              referenceDirImages.child(uniqueFileName);
+
+                              try {
+                                setState(() => isUploading = true);
+                                UploadTask uploadTask =  referenceImageToUpload.putFile(File(imageFileGallery!.path));
+
+                                imageUrlNew = await (await uploadTask).ref.getDownloadURL();
+
+                              } catch (error) {
+                                setState(() => isUploading = false);
+                              }
+                              setState(() => isUploading = false);
+                            }
+                          },
+                          icon: const Icon(Icons.folder_copy_rounded),
+                        color: Colors.black,),
+                      ElevatedButton.icon(
+                        onPressed: isUploading ? null :() {
+                          if (_formkey.currentState!.validate()) {
+                          setState(() {
+                            if(imageUrl == "")
+                            {
+                              imageUrl = imageUrlNew;
+                            }
+                            _updateUser(widget.docID, name, info, imageUrl);
+                          Navigator.pop(context);
+                          });
+                          }
+                        },
+                        style: ButtonStyle(
+                          backgroundColor: MaterialStateProperty.all(Colors.orange),
+                        ), icon: isUploading ? Container(
+                        width: 24,
+                        height: 24,
+                        padding: const EdgeInsets.all(2.0),
+                        child: const CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 3,
+                        ),
+                      ) : const Icon(Icons.cloud_upload),
+                        label: const Text('Update'),
                       ),
                     ],
                   ),
+                  SizedBox(height: 20),
+                  AspectRatio(
+                      aspectRatio: 1,
+                      child: Column(
+                        children: [
+                          SizedBox(
+                              width: 294,
+                              height: 392,
+                              child: SingleChildScrollView(
+                                child: Column(
+                                    children: <Widget>[
+                                      _pickImage(),
+                                    ]
+                                ),
+                              )
+                          )
+                        ],
+                      ),
+          ),
+                  SizedBox(height: 10),
+                  _deleteImageButton(),
                 ],
               ),
             ),

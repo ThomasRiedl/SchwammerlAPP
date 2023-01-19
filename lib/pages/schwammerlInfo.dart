@@ -1,7 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:schwammerlapp/constraints.dart/textstyle.dart';
-import 'package:schwammerlapp/pages/mapScene.dart';
-import 'package:schwammerlapp/pages/home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 

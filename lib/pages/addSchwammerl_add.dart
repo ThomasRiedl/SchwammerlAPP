@@ -1,12 +1,11 @@
 import 'dart:io';
-
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:schwammerlapp/constraints.dart/textfield.dart';
+import 'package:schwammerlapp/constraints.dart/textfieldNoVal.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-
 import 'dart:async';
 import 'package:geolocator/geolocator.dart';
-
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
@@ -14,32 +13,25 @@ class AddPage extends StatefulWidget {
 
   const AddPage({Key? key}) : super(key: key);
 
-
   @override
   State<AddPage> createState() => _AddPageState();
 }
 
 class _AddPageState extends State<AddPage> {
 
-  GlobalKey<FormState> key = GlobalKey();
-
-
-  CollectionReference _reference =
-  FirebaseFirestore.instance.collection('places');
-
-  String imageUrl = '';
-
-  //form key
   final _formkey = GlobalKey<FormState>();
-  // text for textfield
+
+  final currentUser = FirebaseAuth.instance.currentUser!.uid.toString();
+
   String name = '';
   String info = '';
-  // textfield
+  String imageUrl = '';
 
   double long = 0;
   double lat = 0;
-
   late Position position;
+
+  bool isUploading = false;
 
   final nameController = TextEditingController();
   final infoController = TextEditingController();
@@ -54,14 +46,18 @@ class _AddPageState extends State<AddPage> {
     infoController.clear();
   }
 
-  //Registering Users
   CollectionReference addSchwammerl =
-      FirebaseFirestore.instance.collection('places');
-  Future<void> _registerSchwammerl() {
-    return addSchwammerl
-        .add({'name': name, 'info': info, 'coords' : GeoPoint(lat, long), 'image' : imageUrl})
-        .then((value) => print('added Schwammerl'))
-        .catchError((_) => print('Something Error In registering Schwammerl'));
+      FirebaseFirestore.instance.collection('users').doc(FirebaseAuth.instance.currentUser!.uid.toString()).collection('locations');
+
+  Future<void>? _registerSchwammerl() {
+    while(!isUploading)
+      {
+        return addSchwammerl
+            .add({'name': name, 'info': info, 'coords' : GeoPoint(lat, long), 'image' : imageUrl})
+            .then((value) => print('Schwammerl Place added'))
+            .catchError((_) => print('Something Error In registering Schwammerl'));
+      }
+      return null;
   }
 
   getLocation() async {
@@ -71,13 +67,26 @@ class _AddPageState extends State<AddPage> {
     lat = position.latitude;
   }
 
-  @override
-  void dispose() {
-    nameController.dispose();
-    infoController.dispose();
-    super.dispose();
+  Widget _deleteImageButton() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center ,//Center Column contents vertically,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        ElevatedButton(
+          onPressed: _deleteImage,
+          child: const Text('Bild Entfernen'),
+        ),
+      ],
+    );
   }
 
+  _deleteImage()
+  {
+    imageUrl = "";
+    setState(() {
+
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -93,53 +102,89 @@ class _AddPageState extends State<AddPage> {
               controller: nameController,
               labettxt: 'Name',
             ),
-            CustomTextEditField(
+            CustomTextEditFieldNoVal(
               controller: infoController,
               labettxt: 'Info',
-              valid: true,
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton(
-                  onPressed: dispose,
+                  onPressed: _clearText,
                   style: ButtonStyle(
                     backgroundColor: MaterialStateProperty.all(Colors.orange),
                   ),
                   child: const Text('Löschen'),
                 ),
                 IconButton(
-                    onPressed: () async {
+                    onPressed: () async{
+                      PickedFile? pickedFile = await ImagePicker().getImage(
+                      source: ImageSource.camera,
+                        maxWidth: 1000,
+                        maxHeight: 1600,
+                        imageQuality: 50,
+                      );
+                      if (pickedFile != null) {
+                      File imageFileCamera = File(pickedFile.path);
 
-                      ImagePicker imagePicker = ImagePicker();
-
-                      XFile? file =
-                      await imagePicker.pickImage(source: ImageSource.camera);
-                      print('${file?.path}');
-                      //Import dart:core
                       String uniqueFileName =
                       DateTime.now().millisecondsSinceEpoch.toString();
 
-                      /*Step 2: Upload to Firebase storage*/
-                      //Install firebase_storage
-                      //Import the library
-
-                      //Get a reference to storage root
                       Reference referenceRoot = FirebaseStorage.instance.ref();
                       Reference referenceDirImages =
                       referenceRoot.child('images');
 
-                      //Create a reference for the image to be stored
                       Reference referenceImageToUpload =
                       referenceDirImages.child(uniqueFileName);
 
-                      await referenceImageToUpload.putFile(File(file!.path));
-                      imageUrl = await referenceImageToUpload.getDownloadURL();
-                      print(imageUrl);
-                    },
-                    icon: Icon(Icons.camera_alt)),
-                ElevatedButton(
-                  onPressed: () async {
+                      try {
+                        setState(() => isUploading = true);
+                        UploadTask uploadTask =  referenceImageToUpload.putFile(File(imageFileCamera!.path));
+
+                        imageUrl = await (await uploadTask).ref.getDownloadURL();
+                      } catch (error) {
+                        setState(() => isUploading = false);
+                      }
+                      setState(() => isUploading = false);
+                      }
+                },
+                  icon: Icon(Icons.camera_alt)),
+                IconButton(
+                    onPressed: () async {
+                        PickedFile? pickedFile = await ImagePicker().getImage(
+                        source: ImageSource.gallery,
+                        maxWidth: 1000,
+                        maxHeight: 1600,
+                        imageQuality: 50,
+                        );
+                      if (pickedFile != null) {
+                        File imageFileGallery = File(pickedFile.path);
+
+                        String uniqueFileName =
+                        DateTime.now().millisecondsSinceEpoch.toString();
+
+                        Reference referenceRoot = FirebaseStorage.instance.ref();
+                        Reference referenceDirImages =
+                        referenceRoot.child('images');
+
+                        Reference referenceImageToUpload =
+                        referenceDirImages.child(uniqueFileName);
+
+                        try {
+                          setState(() => isUploading = true);
+                          UploadTask uploadTask =  referenceImageToUpload.putFile(File(imageFileGallery!.path));
+
+                          imageUrl = await (await uploadTask).ref.getDownloadURL();
+
+                        } catch (error) {
+                          setState(() => isUploading = false);
+                        }
+                        setState(() => isUploading = false);
+                      }
+                      },
+                    icon: const Icon(Icons.folder_copy_rounded)),
+                ElevatedButton.icon(
+                  onPressed: isUploading ? null :() {
                     if (_formkey.currentState!.validate()) {
                       setState(() {
                         name = nameController.text;
@@ -152,12 +197,46 @@ class _AddPageState extends State<AddPage> {
                   },
                   style: ButtonStyle(
                     backgroundColor: MaterialStateProperty.all(Colors.orange),
-                  ),
-                  child: const Text('Platz speichern'),
+                  ), icon: isUploading ? Container(
+                      width: 24,
+                      height: 24,
+                      padding: const EdgeInsets.all(2.0),
+                      child: const CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 3,
+                      ),
+                    ) : const Icon(Icons.cloud_upload),
+                  label: const Text('Platz speichern'),
                 ),
               ],
             ),
-          ],
+            SizedBox(height: 20),
+            AspectRatio(
+              aspectRatio: 1,
+                      child: Column(
+                        children: [
+                          SizedBox(
+                              width: 294,
+                              height: 392,
+                              child: SingleChildScrollView(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  if(imageUrl == "")
+                                    const Text(''),
+                                  if(imageUrl != "")
+                                    Image.network(imageUrl)
+                                ],
+                              ),
+                            )
+                          )
+                        ],
+                      )
+                    ),
+            SizedBox(height: 10),
+            _deleteImageButton(),
+          ]
         ),
       ),
     );

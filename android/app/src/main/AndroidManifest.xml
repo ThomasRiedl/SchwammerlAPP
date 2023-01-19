@@ -3,6 +3,7 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.FLASHLIGHT" />
    <application
+       android:requestLegacyExternalStorage="true"
        android:label="schwammerlapp"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">

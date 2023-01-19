@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-class CustomTextEditField extends StatelessWidget {
-  const CustomTextEditField({
+class CustomTextEditFieldNoVal extends StatelessWidget {
+  const CustomTextEditFieldNoVal({
     Key? key,
     required this.controller,
     required this.labettxt,
@@ -29,12 +29,6 @@ class CustomTextEditField extends StatelessWidget {
         ),
         controller: controller,
         obscureText: visibility,
-        validator: (val) {
-          if (val == null || val.isEmpty) {
-            return 'Please Fill $labettxt';
-          }
-          return null;
-        },
       ),
     );
   }

@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../auth.dart';
@@ -15,6 +16,20 @@ class _LoginPageState extends State<LoginPage> {
 
   final TextEditingController _controllerEmail = TextEditingController();
   final TextEditingController _controllerPassword = TextEditingController();
+
+  CollectionReference addCar =
+  FirebaseFirestore.instance.collection('users');
+
+  var currentUserId = FirebaseAuth.instance.currentUser?.uid;
+
+  Future<void>? _registerUser() {
+    currentUserId = FirebaseAuth.instance.currentUser?.uid;
+    return addCar
+        .doc(currentUserId.toString())
+        .set({'email': _controllerEmail.text, 'password': _controllerPassword.text, 'userID': currentUserId.toString()})
+        .then((value) => print('User Added'))
+        .catchError((_) => print('Something Error In registering User'));
+  }
 
   Future<void> signInWithEmailAndPassword() async {
     try {
@@ -39,6 +54,7 @@ class _LoginPageState extends State<LoginPage> {
         errorMessage = e.message;
       });
     }
+    _registerUser();
   }
 
   Widget _title() {

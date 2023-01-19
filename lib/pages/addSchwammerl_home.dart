@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:schwammerlapp/pages/addSchwammerl_add.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:schwammerlapp/constraints.dart/textstyle.dart';
 import 'package:schwammerlapp/pages/addSchwammerl_edit.dart';
 import 'package:flutter/material.dart';
@@ -13,13 +13,14 @@ class AddSchwammerlPage extends StatefulWidget {
 
 class _AddSchwammerlPageState extends State<AddSchwammerlPage> {
   // Getting Student all Records
-  final Stream<QuerySnapshot> carRecords =
-      FirebaseFirestore.instance.collection('places').snapshots();
+
+  final Stream<QuerySnapshot> schwammerlRecords =
+  FirebaseFirestore.instance.collection('users').doc(FirebaseAuth.instance.currentUser!.uid.toString()).collection('locations').snapshots();
   // For Deleting Users
-  CollectionReference delCars =
-      FirebaseFirestore.instance.collection('places');
+  CollectionReference delSchwammerl =
+  FirebaseFirestore.instance.collection('users').doc(FirebaseAuth.instance.currentUser!.uid.toString()).collection('locations');
   Future<void> _delete(id) {
-    return delCars
+    return delSchwammerl
         .doc(id)
         .delete()
         .then((value) => print('Schwammerl Deleted'))
@@ -33,7 +34,7 @@ class _AddSchwammerlPageState extends State<AddSchwammerlPage> {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
-        stream: carRecords,
+        stream: schwammerlRecords,
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (snapshot.hasError) {
             print('Something Wrong in HomePage');
@@ -60,63 +61,60 @@ class _AddSchwammerlPageState extends State<AddSchwammerlPage> {
               child: SingleChildScrollView(
                 child: Table(
                   border: TableBorder.all(),
-                  columnWidths: const <int, TableColumnWidth>{
-                    1: FixedColumnWidth(150),
-                  },
                   defaultVerticalAlignment: TableCellVerticalAlignment.middle,
                   children: <TableRow>[
                     TableRow(
                       children: [
                         TableCell(
-                          child: Container(
-                            color: Colors.orange,
-                            child: Center(
-                              child: Text(
-                                'Name',
-                                style: txt,
+                            child: Container(
+                              color: Colors.orange,
+                              child: Center(
+                                child: Text(
+                                  'Name',
+                                  style: txt,
+                                ),
                               ),
                             ),
                           ),
-                        ),
                         TableCell(
-                          child: Container(
-                            color: Colors.orange,
-                            child: Center(
-                              child: Text(
-                                'Info',
-                                style: txt,
+                            child: Container(
+                              color: Colors.orange,
+                              child: Center(
+                                child: Text(
+                                  'Info',
+                                  style: txt,
+                                ),
                               ),
                             ),
                           ),
-                        ),
                         TableCell(
-                          child: Container(
-                            color: Colors.orange,
-                            child: Center(
-                              child: Text(
-                                'Bild',
-                                style: txt,
+                            child: Container(
+                              color: Colors.orange,
+                              child: Center(
+                                child: Text(
+                                  'Bild',
+                                  style: txt,
+                                ),
                               ),
                             ),
                           ),
-                        ),
                         TableCell(
-                          child: Container(
-                            color: Colors.orange,
-                            child: Center(
-                              child: Text(
-                                '',
-                                style: txt,
+                            child: Container(
+                              color: Colors.orange,
+                              child: Center(
+                                child: Text(
+                                  '',
+                                  style: txt,
+                                ),
                               ),
                             ),
-                          ),
                         ),
                       ],
                     ),
                     for (var i = 0; i < firebaseData.length; i++) ...[
-                      TableRow(
-                        children: [
-                          TableCell(
+                    TableRow(
+                      children: [
+                        TableCell(
                             child: SizedBox(
                               child: Center(
                                 child: Text(
@@ -125,8 +123,8 @@ class _AddSchwammerlPageState extends State<AddSchwammerlPage> {
                                 ),
                               ),
                             ),
-                          ),
-                          TableCell(
+                        ),
+                        TableCell(
                             child: SizedBox(
                               child: Center(
                                 child: Text(
@@ -135,24 +133,27 @@ class _AddSchwammerlPageState extends State<AddSchwammerlPage> {
                                 ),
                               ),
                             ),
-                          ),
-                          TableCell(
+                        ),
+                        TableCell(
                             child: SizedBox(
                               child: Column(
-                                  children: [
+                                mainAxisSize: MainAxisSize.max,
+                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                children: [
                                   if(firebaseData[i]['image'] == "")
                                     const Text(''),
                                   if(firebaseData[i]['image'] != "")
                                     firebaseData[i].containsKey('image') ? Image.network(
                                         '${firebaseData[i]['image']}') : Container(),
-                                  ],
+                                ],
                               ),
                             ),
-                          ),
-                          TableCell(
+                        ),
+                        TableCell(
                             child: Row(
-                              children: [
-                                IconButton(
+                            children: [
+                              Flexible(
+                                child: IconButton(
                                   onPressed: () {
                                     Navigator.push(
                                       context,
@@ -165,30 +166,32 @@ class _AddSchwammerlPageState extends State<AddSchwammerlPage> {
                                   },
                                   icon: const Icon(
                                     Icons.edit,
-                                    color: Colors.orange,
+                                    color: Colors.black,
                                   ),
                                 ),
-                                IconButton(
+                              ),
+                              Flexible(
+                                child: IconButton(
                                   onPressed: () {
                                     _delete(firebaseData[i]['id']);
-                                    //print(firebaseData);
                                   },
                                   icon: const Icon(
                                     Icons.delete,
-                                    color: Colors.orange,
+                                    color: Colors.black,
                                   ),
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                    ], //this is loop
-                  ],
-                ),
+                        ),
+                      ],
+                    ),
+                  ], //this is loop
+                ],
               ),
             ),
-          );
-        });
+          ),
+        );
+      });
   }
 }

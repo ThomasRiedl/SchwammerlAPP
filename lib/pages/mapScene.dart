@@ -4,13 +4,10 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:intl/intl.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:location/location.dart';
+import 'package:schwammerlapp/pages/nav_bar_page.dart';
 import 'package:weather/weather.dart';
-import 'dart:math';
-import 'package:geocoding/geocoding.dart';
-import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:schwammerlapp/auth.dart';
 import 'package:schwammerlapp/pages/schwammerlInfo.dart';
@@ -25,19 +22,23 @@ class MapScene extends  StatefulWidget {
 class _MapSceneState extends State<MapScene> {
   bool servicestatus = false;
   bool haspermission = false;
-  LocationPermission permission;
-  Position position;
+  Location permission;
   double long = 0;
   double lat = 0;
-  StreamSubscription<Position> positionStream;
   DateTime now = DateTime.now();
   String time;
   String date;
   CameraPosition _initialPosition = CameraPosition(target: LatLng(0, 0), zoom: 16);
 
+  double currentLong = 0;
+  double currentLat = 0;
+  double startlong = 0;
+  double startlat = 0;
+
   final User user = Auth().currentUser;
 
   Set<Marker> markers = Set();
+
   List<LatLng> routePoints = [];
   LatLng livePosition;
   double polylineDistance = 0;
@@ -51,25 +52,38 @@ class _MapSceneState extends State<MapScene> {
   Map<PolylineId, Polyline> polylines = {};
   PolylinePoints polylinePoints = PolylinePoints();
 
-  Marker origin;
-  Marker destination;
-  Marker lifeTracking;
-  String travelDistance;
-  String travelTime;
+  bool mapFocused = true;
 
   GoogleMapController mapController;
+  int latlongStartCounter = 1;
+  int loadMapCounter = 1;
+  int getLoactionOnceCounter = 1;
 
-  int focusCamerOnce = 1;
+  double zoomLevel = 15;
 
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
   }
 
+  void focusCamera(LatLng latLng){
+    /*mapController.getZoomLevel().then((value) => {
+      zoomLevel = value
+    });*/
+    var newPosition = CameraPosition(
+        target: latLng,
+        zoom: zoomLevel
+    );
+    CameraUpdate update = CameraUpdate.newCameraPosition(newPosition);
+
+    mapController.moveCamera(update);
+  }
+
   @override
   void initState() {
     wf = WeatherFactory(weatherAPI, language: Language.GERMAN);
-    checkGps();
+    _initialPosition = CameraPosition(target: LatLng(0, 0), zoom: zoomLevel);
     markers.clear();
+    getLocation();
   }
 
   Widget _title() {
@@ -99,18 +113,6 @@ class _MapSceneState extends State<MapScene> {
     );
   }
 
-  Widget _showSchwammerlInfoButton(BuildContext context) {
-    return ElevatedButton(
-      onPressed: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const ShowSchwammerlPage()),
-        );
-      },
-      child: const Text('Schwammerl Info'),
-    );
-  }
-
   Widget _showSchwammerlPlaces(BuildContext context) {
     return ElevatedButton(
       onPressed: () {
@@ -126,182 +128,139 @@ class _MapSceneState extends State<MapScene> {
   Widget _showPlacesOnMapButton() {
       return ElevatedButton(
         onPressed:(){
-          if(markers.isEmpty)
+          if(markers.length == 1)
           {
             getGeopoints();
           }
           else
           {
             markers.clear();
+            markers.add(
+                Marker(
+                  markerId: MarkerId('lifeTracking'),
+                  infoWindow: InfoWindow(title: 'LifeTracking'),
+                  icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueMagenta),
+                  position: LatLng(currentLat, currentLong),
+                )
+            );
             setState(() {
 
             });
           }
         },
-        child: Text(markers.isEmpty ? 'Schwammerlplätze auf Karte anzeigen' : 'Schwammerlplätze auf Karte verdecken'),
+        child: Text(markers.length == 1 ? 'Schwammerlplätze auf Karte anzeigen' : 'Schwammerlplätze auf Karte verdecken'),
       );
   }
 
   getGeopoints() {
     markers.clear();
+    markers.add(
+        Marker(
+          markerId: MarkerId('lifeTracking'),
+          infoWindow: InfoWindow(title: 'LifeTracking'),
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueMagenta),
+          position: LatLng(currentLat, currentLong),
+        )
+    );
     var coordinates = FirebaseFirestore.instance.collection('users').doc(FirebaseAuth.instance.currentUser.uid.toString()).collection('locations');
     coordinates.snapshots().listen((querySnapshot) {
       querySnapshot.docs.forEach((doc) {
         var geopoint = doc.data()['coords'] as GeoPoint;
-        print(geopoint);
         markers.add(Marker(
           markerId: MarkerId(doc.id),
           icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
           position: LatLng(geopoint.latitude, geopoint.longitude),
         ));
-        setState(() {
-          //refresh UI
-        });
+      });
+      setState(() {
+
       });
     });
   }
 
-  getAddress() async {
-    List<Placemark> placemarks = await placemarkFromCoordinates(lat, long);
-    //convertToAddress();
+  getLocationOnce() async{
 
+    LocationData currentLocation;
+
+    currentLong = currentLocation.longitude;
+    currentLat = currentLocation.latitude;
+    print("object2");
+    focusCamera(LatLng(currentLat, currentLong));
     setState(() {
-      stAddress = placemarks.first.administrativeArea.toString() + ", " +  placemarks.first.street.toString();
+
     });
-  }
-
-  queryWeather() async {
-    Weather weather = await wf.currentWeatherByLocation(lat, long);
-    setState(() {
-      weatherData = weather.weatherDescription;
-    });
-  }
-
-  convertToAddress() async {
-    Dio dio = Dio();  //initilize dio package
-    String apiurl = "https://maps.googleapis.com/maps/api/geocode/json?latlng=$lat,$long&key=$googleAPI";
-
-    Response response = await dio.get(apiurl); //send get request to API URL
-
-    if(response.statusCode == 200){ //if connection is successful
-      Map data = response.data; //get response data
-      if(data["status"] == "OK"){ //if status is "OK" returned from REST API
-        if(data["results"].length > 0){ //if there is atleast one address
-          Map firstresult = data["results"][0]; //select the first address
-
-          stAddress = firstresult["formatted_address"]; //get the address
-
-          //you can use the JSON data to get address in your own format
-
-          setState(() {
-            //refresh UI
-          });
-        }
-      }else{
-        print(data["error_message"]);
-      }
-    }else{
-      print("error while fetching geoconding data");
-    }
-  }
-
-  double calculateDistance(lat1, lon1, lat2, lon2){
-    var p = 0.017453292519943295;
-    var c = cos;
-    var a = 0.5 - c((lat2 - lat1) * p)/2 +
-        c(lat1 * p) * c(lat2 * p) *
-            (1 - c((lon2 - lon1) * p))/2;
-    return 12742 * asin(sqrt(a));
   }
 
   getLocation() async {
-    position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-    print(position.longitude);
-    print(position.latitude);
+    Location location = new Location();
+    location.enableBackgroundMode(enable: true);
 
-    long = position.longitude;
-    lat = position.latitude;
+    bool _serviceEnabled;
+    PermissionStatus _permissionGranted;
+    LocationData _locationData;
 
-    routePoints.add(LatLng(lat,long));
-
-    setState(() {
-      //refresh UI
-    });
-
-
-    LocationSettings locationSettings = LocationSettings(
-        accuracy: LocationAccuracy.bestForNavigation,
-        distanceFilter: 5
-    );
-
-    StreamSubscription<Position> positionStream = Geolocator.getPositionStream(
-        locationSettings: locationSettings).listen((Position position) {
-      print(position.longitude);
-      print(position.latitude);
-
-      long = position.longitude;
-      lat = position.latitude;
-
-      routePoints.add(LatLng(lat,long));
-      polylineDistance += calculateDistance(routePoints[routePoints.length-2].latitude, routePoints[routePoints.length-2].longitude, routePoints[routePoints.length-1].latitude, routePoints[routePoints.length-1].longitude);
-
-      convertToAddress();
-
-      if(focusCamerOnce == 1)
-      {
-        var newPosition = CameraPosition(
-            target: LatLng(position.latitude, position.longitude),
-            zoom: 15);
-        CameraUpdate update =CameraUpdate.newCameraPosition(newPosition);
-
-        mapController.moveCamera(update);
-        focusCamerOnce--;
+    _serviceEnabled = await location.serviceEnabled();
+    if (!_serviceEnabled) {
+      _serviceEnabled = await location.requestService();
+      if (!_serviceEnabled) {
+        return;
       }
-
-      setState(() {
-        //refresh UI on update
-      });
-    });
-  }
-
-  checkGps() async {
-    servicestatus = await Geolocator.isLocationServiceEnabled();
-    if(servicestatus){
-      permission = await Geolocator.checkPermission();
-
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) {
-          print('Location permissions are denied');
-        }else if(permission == LocationPermission.deniedForever){
-          print("'Location permissions are permanently denied");
-        }else{
-          haspermission = true;
-        }
-      }else{
-        haspermission = true;
-      }
-
-      if(haspermission){
-        setState(() {
-          //refresh the UI
-        });
-
-        getLocation();
-      }
-    }else{
-      print("GPS Service is not enabled, turn on GPS location");
     }
 
+    _permissionGranted = await location.hasPermission();
+    if (_permissionGranted == PermissionStatus.denied) {
+      _permissionGranted = await location.requestPermission();
+      if (_permissionGranted != PermissionStatus.granted) {
+        return;
+      }
+    }
+
+    _locationData = await location.getLocation();
+
+    currentLong = _locationData.longitude;
+    currentLat = _locationData.latitude;
+
+    location.changeSettings(
+      accuracy: LocationAccuracy.navigation,
+      distanceFilter: 1,
+    );
+
     setState(() {
-      //refresh the UI
+
+    });
+
+    location.onLocationChanged.listen((LocationData currentLocation) {
+
+      currentLong = currentLocation.longitude;
+      currentLat = currentLocation.latitude;
+
+      if(mapFocused) {
+        print("object3");
+        focusCamera(LatLng(currentLocation.latitude, currentLocation.longitude));
+      }
+      setState(() {
+        //refresh UI
+      });
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    time = DateFormat('kk:mm').format(now);
-    date = DateFormat('dd.MM.yyyy').format(now);
+    if(getLoactionOnceCounter == 1)
+    {
+      print("object1");
+      getLocationOnce();
+      getLoactionOnceCounter = getLoactionOnceCounter-1;
+    }
+    markers.removeWhere((marker) => marker.markerId.value == 'lifeTracking');
+    markers.add(
+        Marker(
+          markerId: MarkerId('lifeTracking'),
+          infoWindow: InfoWindow(title: 'LifeTracking'),
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueMagenta),
+          position: LatLng(currentLat, currentLong),
+        )
+    );
     return Scaffold(
       appBar: AppBar(
           title: _title(),
@@ -315,6 +274,11 @@ class _MapSceneState extends State<MapScene> {
               child: GoogleMap(
                   onMapCreated: _onMapCreated,
                   myLocationButtonEnabled: true,
+                  zoomGesturesEnabled: true,
+                  tiltGesturesEnabled: false,
+                  onCameraMove:(CameraPosition cameraPosition) {
+                    zoomLevel = cameraPosition.zoom;
+                  },
                   markers: markers,
                   initialCameraPosition: _initialPosition
               ),
@@ -326,13 +290,24 @@ class _MapSceneState extends State<MapScene> {
               children: <Widget>[
                 _addSchwammerlPlace(context),
                 _showSchwammerlPlaces(context),
-                _showSchwammerlInfoButton(context),
                 _showPlacesOnMapButton(),
                 _signOutButton(),
               ],
             ),
           ]
       ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor:Colors.green,
+        foregroundColor:Colors.white,
+        onPressed:()=>{
+          setState(() {
+
+          }),
+          mapFocused = !mapFocused,
+          focusCamera(LatLng(currentLat, currentLong))
+        },
+        child:const Icon(Icons.navigation),
       ),
     );
   }

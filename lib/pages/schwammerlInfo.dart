@@ -3,14 +3,14 @@ import 'package:schwammerlapp/constraints.dart/textstyle.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
-class ShowSchwammerlPage extends StatefulWidget {
-  const ShowSchwammerlPage({Key? key}) : super(key: key);
+class SchwammerlInfoPage extends StatefulWidget {
+  const SchwammerlInfoPage({Key? key}) : super(key: key);
 
   @override
-  State<ShowSchwammerlPage> createState() => _ShowSchwammerlPageState();
+  State<SchwammerlInfoPage> createState() => _SchwammerlInfoPageState();
 }
 
-class _ShowSchwammerlPageState extends State<ShowSchwammerlPage> {
+class _SchwammerlInfoPageState extends State<SchwammerlInfoPage> {
   // Getting Student all Records
   final Stream<QuerySnapshot> schwammerlRecords =
   FirebaseFirestore.instance.collection('schwammerl').snapshots();

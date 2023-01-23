@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:schwammerlapp/pages/nav_bar_page.dart';
 import '../auth.dart';
 
 class LoginPage extends StatefulWidget {
@@ -36,6 +37,14 @@ class _LoginPageState extends State<LoginPage> {
       await Auth().signInWithEmailAndPassword(
         email: _controllerEmail.text,
         password: _controllerPassword.text,
+      );
+      await Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(
+          builder: (context) =>
+              NavBarPage(initialPage: 'MapScenePage'),
+        ),
+            (r) => false,
       );
     } on FirebaseAuthException catch (e) {
       setState(() {

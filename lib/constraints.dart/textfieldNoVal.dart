@@ -1,6 +1,13 @@
 import 'package:flutter/material.dart';
 
 class CustomTextEditFieldNoVal extends StatelessWidget {
+  /// Creates a custom text edit field widget without validation
+  ///
+  /// [key] is the key for this widget.
+  /// [controller] is the text editing controller for the text field
+  /// [labettxt] is the label text for the text field
+  /// [visibility] is a boolean value to set the text visibility on the text field
+
   const CustomTextEditFieldNoVal({
     Key? key,
     required this.controller,
@@ -11,6 +18,8 @@ class CustomTextEditFieldNoVal extends StatelessWidget {
   final TextEditingController controller;
   final String labettxt;
   final bool visibility, valid;
+
+  /// Builds the widget tree for this widget
   @override
   Widget build(BuildContext context) {
     return Container(

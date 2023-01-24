@@ -9,6 +9,24 @@ import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
+/// [nameController] is the text editing controller for the name text field
+/// [infoController] is the text editing controller for the info text field
+/// [addSchwammerl] is the collection reference to the firebase collection where the "schwammerl" will be added
+/// [_registerSchwammerl()] is a function that adds the "schwammerl" to the firebase collection
+/// [getLocation()] is a function that gets the current device location
+/// [_deleteImageButton()] is a widget that displays a button to delete the selected image
+/// [_deleteImage()] is a function that deletes the selected image
+/// [isUploading] is a boolean value that checks whether an image is currently uploading or not
+/// [_clearText()] is a function that clears the text in the text fields
+/// [_formkey] is the GlobalKey for the form in the build method
+/// [currentUser] is the current user's uid from FirebaseAuth
+/// [name] is the name of the "schwammerl"
+/// [info] is the additional information of the "schwammerl"
+/// [imageUrl] is the url of the selected image
+/// [long] is the longitude of the device's current location
+/// [lat] is the latitude of the device's current location
+/// [position] is the current device location
+/// [build()] method builds the UI for the AddPage
 class AddPage extends StatefulWidget {
 
   const AddPage({Key? key}) : super(key: key);

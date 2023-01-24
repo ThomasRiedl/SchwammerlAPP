@@ -1,6 +1,14 @@
 import 'package:flutter/material.dart';
 
 class CustomTextEditField extends StatelessWidget {
+  /// Creates a custom text edit field widget
+  ///
+  /// [key] is the key for this widget.
+  /// [controller] is the text editing controller for the text field
+  /// [labettxt] is the label text for the text field
+  /// [visibility] is a boolean value to set the text visibility on the text field
+  /// [valid] is a boolean value to set the validation of the text field
+
   const CustomTextEditField({
     Key? key,
     required this.controller,
@@ -11,6 +19,8 @@ class CustomTextEditField extends StatelessWidget {
   final TextEditingController controller;
   final String labettxt;
   final bool visibility, valid;
+
+  /// Builds the widget tree for this widget
   @override
   Widget build(BuildContext context) {
     return Container(

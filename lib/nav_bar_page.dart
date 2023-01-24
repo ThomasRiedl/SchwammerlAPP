@@ -18,15 +18,11 @@ class NavBarPage extends StatefulWidget {
 class _NavBarPageState extends State<NavBarPage> {
   String _currentPageName = 'MapScenePage';
   late Widget? _currentPage;
-  int pageIndex = 0;
-
   var currentUser = FirebaseAuth.instance.currentUser?.uid;
-  late PageController pageController;
 
   @override
   void initState() {
     super.initState();
-    pageController = PageController(initialPage: pageIndex);
     _currentPageName = widget.initialPage ?? _currentPageName;
     _currentPage = widget.page;
   }
@@ -38,27 +34,22 @@ class _NavBarPageState extends State<NavBarPage> {
       'MapScenePage': MapScene(),
       'SettingsPage': SettingsPage(docID: currentUser.toString(),),
     };
+    final currentIndex = tabs.keys.toList().indexOf(_currentPageName);
     return Scaffold(
-      body: PageView(
-        controller: pageController,
-        children: tabs.values.toList(),
-        onPageChanged: (index) {
-          setState(() {
-            pageIndex = index;
-          });
-        },
-      ),
+      body: _currentPage ?? tabs[_currentPageName],
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: pageIndex,
+        currentIndex: currentIndex,
+        onTap: (i) =>
+            setState(() {
+              _currentPage = null;
+              _currentPageName = tabs.keys.toList()[i];
+            }),
         backgroundColor: Colors.black,
         selectedItemColor: Colors.orange,
-        unselectedItemColor: Colors.grey,
+        unselectedItemColor: Colors.white,
         showSelectedLabels: false,
         showUnselectedLabels: false,
         type: BottomNavigationBarType.fixed,
-        onTap: (index) {
-          pageController.animateToPage(index, duration: Duration(milliseconds: 300), curve: Curves.easeIn);
-        },
         items: [
           BottomNavigationBarItem(
             icon: Icon(

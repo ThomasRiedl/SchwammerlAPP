@@ -199,20 +199,14 @@ class _SettingsPageState extends State<SettingsPage> {
     }
   }
 
-  Widget _deleteImageButton() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center ,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        ElevatedButton(
-          onPressed: _deleteImage,
-          child: const Text('Bild Entfernen'),
-          style: ButtonStyle(
-            backgroundColor: MaterialStateProperty.all(Colors.orange),
-          ),
-        ),
+  Future<void> signOut() async {
+    await Auth().signOut();
+  }
 
-      ],
+  Widget _signOutButton() {
+    return ElevatedButton(
+      onPressed: signOut,
+      child: const Text('Sign Out'),
     );
   }
 
@@ -589,128 +583,6 @@ class _SettingsPageState extends State<SettingsPage> {
                     )
                   ],
                 ),
-                SizedBox(height: 10,),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    ElevatedButton(
-                      onPressed:() {
-                        if (_formkey.currentState!.validate()) {
-                          setState(() {
-                            changePasswordAndEmailOld();
-                            _getOldUser(widget.docID, applicantNameOld, emailOld, passwordOld, imageApplicantOld);
-                            Navigator.pop(context);
-                            ScaffoldMessenger.of(context).showSnackBar(snackBarCancel);
-                          });
-                        }
-                      },
-                      style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.all(Colors.orange),
-                      ),
-                      child: const Text('Abrechen'),
-                    ),IconButton(
-                      onPressed: () async{
-                        PickedFile? pickedFile = await ImagePicker().getImage(
-                          source: ImageSource.camera,
-                          maxWidth: 1000,
-                          maxHeight: 1600,
-                          imageQuality: 50,
-                        );
-                        if (pickedFile != null) {
-                          File imageFileCamera = File(pickedFile.path);
-
-                          String uniqueFileName =
-                          DateTime.now().millisecondsSinceEpoch.toString();
-
-                          Reference referenceRoot = FirebaseStorage.instance.ref();
-                          Reference referenceDirImages =
-                          referenceRoot.child('images');
-
-                          Reference referenceImageToUpload =
-                          referenceDirImages.child(uniqueFileName);
-
-                          try {
-                            setState(() => isUploading = true);
-                            UploadTask uploadTask =  referenceImageToUpload.putFile(File(imageFileCamera!.path));
-
-                            imageApplicantNew = await (await uploadTask).ref.getDownloadURL();
-                          } catch (error) {
-                            setState(() => isUploading = false);
-                          }
-                          setState(() => isUploading = false);
-                        }
-                      },
-                      icon: Icon(Icons.camera_alt),
-                      color: Colors.black,),
-                    IconButton(
-                      onPressed: () async {
-                        PickedFile? pickedFile = await ImagePicker().getImage(
-                          source: ImageSource.gallery,
-                          maxWidth: 1000,
-                          maxHeight: 1600,
-                          imageQuality: 50,
-                        );
-                        if (pickedFile != null) {
-                          File imageFileGallery = File(pickedFile.path);
-
-                          String uniqueFileName =
-                          DateTime.now().millisecondsSinceEpoch.toString();
-
-                          Reference referenceRoot = FirebaseStorage.instance.ref();
-                          Reference referenceDirImages =
-                          referenceRoot.child('images');
-
-                          Reference referenceImageToUpload =
-                          referenceDirImages.child(uniqueFileName);
-
-                          try {
-                            setState(() => isUploading = true);
-                            UploadTask uploadTask =  referenceImageToUpload.putFile(File(imageFileGallery!.path));
-
-                            imageApplicantNew = await (await uploadTask).ref.getDownloadURL();
-
-                          } catch (error) {
-                            setState(() => isUploading = false);
-                          }
-                          setState(() => isUploading = false);
-                        }
-                      },
-                      icon: const Icon(Icons.folder_copy_rounded),
-                      color: Colors.black,),
-                    ElevatedButton.icon(
-                      onPressed: isUploading ? null :() {
-                        if (_formkey.currentState!.validate()) {
-                          setState(() {
-                            if(imageApplicant == "")
-                            {
-                              imageApplicant = imageApplicantNew;
-                            }
-                            if(isLogin == true)
-                            {
-                              _updateEmailAndPassword();
-                            }
-                            if(applicantNameOld != applicantName || imageApplicantOld != imageApplicant)
-                            {
-                              _updateUser(widget.docID, applicantName, imageApplicant);
-                            }
-                          });
-                        }
-                      },
-                      style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.all(Colors.orange),
-                      ), icon: isUploading ? Container(
-                      width: 24,
-                      height: 24,
-                      padding: const EdgeInsets.all(2.0),
-                      child: const CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 3,
-                      ),
-                    ) : const Icon(Icons.cloud_upload),
-                      label: const Text('Update'),
-                    ),
-                  ],
-                ),
                 SizedBox(height: 20),
                 AspectRatio(
                   aspectRatio: 1,
@@ -722,9 +594,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           child: SingleChildScrollView(
                             child: Column(
                                 children: <Widget>[
-                                  SizedBox(height: 10),
-                                  _deleteImageButton(),
-                                  SizedBox(height: 10),
+                                  _signOutButton(),
                                 ]
                             ),
                           )

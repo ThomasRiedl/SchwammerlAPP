@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:schwammerlapp/pages/nav_bar_page.dart';
+import 'package:schwammerlapp/nav_bar_page.dart';
 import '../auth.dart';
 
 class LoginPage extends StatefulWidget {

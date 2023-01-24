@@ -1,16 +1,13 @@
 // @dart=2.9
 
-import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
-import 'package:schwammerlapp/pages/nav_bar_page.dart';
 import 'package:weather/weather.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:schwammerlapp/auth.dart';
-import 'package:schwammerlapp/pages/schwammerlInfo.dart';
 import 'package:schwammerlapp/pages/addSchwammerl_add.dart';
 import 'package:schwammerlapp/pages/addSchwammerl_home.dart';
 
@@ -90,17 +87,6 @@ class _MapSceneState extends State<MapScene> {
     return const Text('SchwammerlAPP');
   }
 
-  Future<void> signOut() async {
-    await Auth().signOut();
-  }
-
-  Widget _signOutButton() {
-    return ElevatedButton(
-      onPressed: signOut,
-      child: const Text('Sign Out'),
-    );
-  }
-
   Widget _addSchwammerlPlace(BuildContext context) {
     return ElevatedButton(
       onPressed: () {
@@ -139,7 +125,7 @@ class _MapSceneState extends State<MapScene> {
                 Marker(
                   markerId: MarkerId('lifeTracking'),
                   infoWindow: InfoWindow(title: 'LifeTracking'),
-                  icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueMagenta),
+                  icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange),
                   position: LatLng(currentLat, currentLong),
                 )
             );
@@ -158,7 +144,7 @@ class _MapSceneState extends State<MapScene> {
         Marker(
           markerId: MarkerId('lifeTracking'),
           infoWindow: InfoWindow(title: 'LifeTracking'),
-          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueMagenta),
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange),
           position: LatLng(currentLat, currentLong),
         )
     );
@@ -184,7 +170,6 @@ class _MapSceneState extends State<MapScene> {
 
     currentLong = currentLocation.longitude;
     currentLat = currentLocation.latitude;
-    print("object2");
     focusCamera(LatLng(currentLat, currentLong));
     setState(() {
 
@@ -235,7 +220,6 @@ class _MapSceneState extends State<MapScene> {
       currentLat = currentLocation.latitude;
 
       if(mapFocused) {
-        print("object3");
         focusCamera(LatLng(currentLocation.latitude, currentLocation.longitude));
       }
       setState(() {
@@ -248,7 +232,6 @@ class _MapSceneState extends State<MapScene> {
   Widget build(BuildContext context) {
     if(getLoactionOnceCounter == 1)
     {
-      print("object1");
       getLocationOnce();
       getLoactionOnceCounter = getLoactionOnceCounter-1;
     }
@@ -257,7 +240,7 @@ class _MapSceneState extends State<MapScene> {
         Marker(
           markerId: MarkerId('lifeTracking'),
           infoWindow: InfoWindow(title: 'LifeTracking'),
-          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueMagenta),
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange),
           position: LatLng(currentLat, currentLong),
         )
     );
@@ -291,14 +274,13 @@ class _MapSceneState extends State<MapScene> {
                 _addSchwammerlPlace(context),
                 _showSchwammerlPlaces(context),
                 _showPlacesOnMapButton(),
-                _signOutButton(),
               ],
             ),
           ]
       ),
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor:Colors.green,
+        backgroundColor:Colors.orange,
         foregroundColor:Colors.white,
         onPressed:()=>{
           setState(() {

@@ -139,16 +139,17 @@ class _SchwammerlInfoPageState extends State<SchwammerlInfoPage> {
                                         '${firebaseData[i]['image']}') : Container(),
                                 ],
                               ),
-                              ),
                             ),
+                          ),
                         ],
                       ),
-                    ], //this is loop
+                    ],
                   ],
                 ),
               ),
             ),
           );
-        });
+        }
+      );
   }
 }

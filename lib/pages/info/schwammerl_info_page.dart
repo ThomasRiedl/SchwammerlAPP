@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:schwammerlapp/constraints.dart/textstyle.dart';
+import 'package:schwammerlapp/constraints/textstyle.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
@@ -112,7 +112,7 @@ class _SchwammerlInfoPageState extends State<SchwammerlInfoPage> {
                             child: SizedBox(
                               child: Center(
                                 child: Text(
-                                  firebaseData[i]['info'],
+                                  firebaseData[i]['name'],
                                   style: txt2,
                                 ),
                               ),
@@ -122,7 +122,7 @@ class _SchwammerlInfoPageState extends State<SchwammerlInfoPage> {
                             child: SizedBox(
                               child: Center(
                                 child: Text(
-                                  firebaseData[i]['name'],
+                                  firebaseData[i]['info'],
                                   style: txt2,
                                 ),
                               ),

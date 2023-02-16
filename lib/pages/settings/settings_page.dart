@@ -1,14 +1,10 @@
 import 'dart:async';
-import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:schwammerlapp/auth.dart';
-import 'package:schwammerlapp/pages/login_register_page.dart';
+import 'package:schwammerlapp/firebase/auth.dart';
+import 'package:schwammerlapp/pages/loginRegister/login_register_page.dart';
 
 class SettingsPage extends StatefulWidget {
 
@@ -25,22 +21,14 @@ class _SettingsPageState extends State<SettingsPage> {
 
   String? errorMessage = '';
 
-  String applicantName = '';
   String email = '';
   String password = '';
-  String imageApplicant = '';
-
-  String imageApplicantNew = '';
-  String imageApplicantOld = '';
-  String applicantNameOld = '';
   String emailOld = '';
   String passwordOld = '';
 
-  int oldImageCounter = 1;
   int getDataCounter = 1;
   int countSecondsCounter = 1;
 
-  bool isUploading = false;
   bool isLogin = false;
   bool _passwordVisible = false;
   bool _passwordVisibleDialog = false;
@@ -51,10 +39,6 @@ class _SettingsPageState extends State<SettingsPage> {
 
   final TextEditingController _controllerEmailDialog = TextEditingController();
   final TextEditingController _controllerPasswordDialog = TextEditingController();
-
-  static const snackBarCancel = SnackBar(
-    content: Text('Änderungen verworfen'),
-  );
 
   static const snackBarError = SnackBar(
     content: Text("Beim Ändern der Benutzerdaten ist ein Fehler aufgetreten"),
@@ -88,48 +72,6 @@ class _SettingsPageState extends State<SettingsPage> {
         .catchError((error) => print("Failed to update Password: $error"));
   }
 
-  Future<void> _getOldUser(id, applicantName, email, password, imageApplicantNew) {
-    return user
-        .doc(id)
-        .update({'applicantName': applicantName, 'email': email, 'password': password, 'imageApplicant': imageApplicantNew,
-    })
-        .then((value) => print("User not Updated"))
-        .catchError((error) => print("Failed to update User: $error"));
-  }
-
-  Future<void> _updateUser(id, applicantName, imageApplicantNew) {
-    return user
-        .doc(id)
-        .update({'applicantName': applicantName, 'email': email, 'password': password, 'imageApplicant': imageApplicantNew,
-    })
-        .then((value) => print("User Updated"))
-        .catchError((error) => print("Failed to update User: $error"));
-  }
-
-  Future<void> _updateImage(id, imageUrlNew) {
-    return user
-        .doc(id)
-        .update({'imageApplicant': imageUrlNew,})
-        .then((value) => print("User Image Updated"))
-        .catchError((error) => print("Failed to update User Image: $error"));
-  }
-
-
-  _deleteImage()
-  {
-    future: FirebaseFirestore.instance
-        .collection('users').doc(FirebaseAuth.instance.currentUser!.uid.toString()).collection('cars')
-        .doc(widget.docID)
-        .get();
-
-    imageApplicantNew = "";
-    imageApplicant = "";
-    _updateImage(widget.docID, imageApplicantNew);
-    setState(() {
-
-    });
-  }
-
   Future<void> _deleteUser(id) {
     return user
         .doc(id)
@@ -138,7 +80,7 @@ class _SettingsPageState extends State<SettingsPage> {
         .catchError((_) => print('Something Error In Deleted User'));
   }
 
-  changePasswordAndEmailOld() async{
+  void changePasswordAndEmailOld() async{
     try{
       await FirebaseAuth.instance.currentUser!.updatePassword(passwordOld);
       await FirebaseAuth.instance.currentUser!.updateEmail(emailOld);
@@ -148,7 +90,7 @@ class _SettingsPageState extends State<SettingsPage> {
     }
   }
 
-  changePasswordOldEmail() async{
+  void changePasswordOldEmail() async{
     try{
       await FirebaseAuth.instance.currentUser!.updatePassword(password);
       await FirebaseAuth.instance.signInWithEmailAndPassword(email: emailOld, password: password);
@@ -157,7 +99,7 @@ class _SettingsPageState extends State<SettingsPage> {
     }
   }
 
-  changeEmailAndPassword() async{
+  void changeEmailAndPassword() async{
     try{
       await FirebaseAuth.instance.currentUser!.updateEmail(email);
       await FirebaseAuth.instance.currentUser!.updatePassword(password);
@@ -172,31 +114,6 @@ class _SettingsPageState extends State<SettingsPage> {
   _clearText() {
     _controllerEmailDialog.clear();
     _controllerPasswordDialog.clear();
-  }
-
-  Widget _pickImage()
-  {
-    if(imageApplicant == "" && imageApplicantNew == "" || isUploading)
-    {
-      return const Text("");
-    }
-    if(imageApplicant != "" && imageApplicantNew == "")
-    {
-      return Image.network(imageApplicant);
-    }
-    if(imageApplicantNew == "")
-    {
-      return const Text("");
-    }
-    if(imageApplicantNew != "")
-    {
-      imageApplicant = "";
-      return Image.network(imageApplicantNew);
-    }
-    else
-    {
-      return const Text("");
-    }
   }
 
   Future<void> signOut() async {
@@ -448,23 +365,15 @@ class _SettingsPageState extends State<SettingsPage> {
           );
         }
         var data = snapshot.data?.data();
-        applicantName = data!['applicantName'];
         email = data!['email'];
         password = data!['password'];
-        imageApplicant = data!['imageApplicant'];
-        applicantNameOld = applicantName;
         emailOld = email;
         passwordOld = password;
-        if(oldImageCounter != 0)
-        {
-          imageApplicantOld = imageApplicant;
-          oldImageCounter = oldImageCounter -1;
-        }
         getDataCounter = getDataCounter-1;
       }
         return Scaffold(
           appBar: AppBar(
-            title: const Text('CarLog'),
+            title: const Text('Schwammerl App'),
             backgroundColor: Colors.orange,
           ),
           body: Form(

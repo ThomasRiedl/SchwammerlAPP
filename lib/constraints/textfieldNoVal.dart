@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 
-class CustomTextEditField extends StatelessWidget {
-  const CustomTextEditField({
+class CustomTextEditFieldNoVal extends StatelessWidget {
+  const CustomTextEditFieldNoVal({
     Key? key,
     required this.controller,
-    required this.labettxt,
+    required this.labelttxt,
     this.visibility = false,
     this.valid = false,
   }) : super(key: key);
   final TextEditingController controller;
-  final String labettxt;
+  final String labelttxt;
   final bool visibility, valid;
   @override
   Widget build(BuildContext context) {
@@ -20,7 +20,7 @@ class CustomTextEditField extends StatelessWidget {
       ),
       child: TextFormField(
         decoration: InputDecoration(
-          labelText: labettxt,
+          labelText: labelttxt,
           labelStyle: const TextStyle(fontSize: 18),
           errorStyle: const TextStyle(color: Colors.red, fontSize: 15),
           border: const OutlineInputBorder(
@@ -29,12 +29,6 @@ class CustomTextEditField extends StatelessWidget {
         ),
         controller: controller,
         obscureText: visibility,
-        validator: (val) {
-          if (val == null || val.isEmpty) {
-            return 'Please Fill $labettxt';
-          }
-          return null;
-        },
       ),
     );
   }

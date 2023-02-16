@@ -1,8 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:schwammerlapp/pages/mapScene.dart';
-
-import 'package:schwammerlapp/pages/schwammerlInfo.dart';import 'package:schwammerlapp/pages/settings_page.dart';
+import 'package:schwammerlapp/pages/mapScene/mapScene_page.dart';
+import 'package:schwammerlapp/pages/info/schwammerl_info_page.dart';
+import 'package:schwammerlapp/pages/settings/settings_page.dart';
 
 class NavBarPage extends StatefulWidget {
   NavBarPage({Key? key, this.initialPage, this.page}) : super(key: key);
@@ -14,11 +14,11 @@ class NavBarPage extends StatefulWidget {
   _NavBarPageState createState() => _NavBarPageState();
 }
 
-/// This is the private State class that goes with NavBarPage.
 class _NavBarPageState extends State<NavBarPage> {
   String _currentPageName = 'MapScenePage';
   late Widget? _currentPage;
   var currentUser = FirebaseAuth.instance.currentUser?.uid;
+  int currentIndex = 0;
 
   @override
   void initState() {
@@ -29,21 +29,14 @@ class _NavBarPageState extends State<NavBarPage> {
 
   @override
   Widget build(BuildContext context) {
-    final tabs = {
-      'SchwammerlInfoPage': SchwammerlInfoPage(),
-      'MapScenePage': MapScene(),
-      'SettingsPage': SettingsPage(docID: currentUser.toString(),),
-    };
-    final currentIndex = tabs.keys.toList().indexOf(_currentPageName);
     return Scaffold(
-      body: _currentPage ?? tabs[_currentPageName],
       bottomNavigationBar: BottomNavigationBar(
+        onTap: (index) {
+          setState(() {
+            currentIndex = index;
+          });
+        },
         currentIndex: currentIndex,
-        onTap: (i) =>
-            setState(() {
-              _currentPage = null;
-              _currentPageName = tabs.keys.toList()[i];
-            }),
         backgroundColor: Colors.black,
         selectedItemColor: Colors.orange,
         unselectedItemColor: Colors.white,
@@ -80,6 +73,14 @@ class _NavBarPageState extends State<NavBarPage> {
             tooltip: '',
           ),
         ],
+      ),
+      body: IndexedStack(
+        children: <Widget>[
+          SchwammerlInfoPage(),
+          MapScenePage(),
+          SettingsPage(docID: currentUser.toString(),),
+        ],
+        index: currentIndex,
       ),
     );
   }

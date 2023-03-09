@@ -86,7 +86,19 @@ class _MapScenePageState extends State<MapScenePage> with AutomaticKeepAliveClie
           MaterialPageRoute(builder: (context) => RouteAddPage()),
         );
       },
-      child: const Text('Schwammerlplatz hinzufügen'),
+      child: const Text('Route hinzufügen'),
+    );
+  }
+
+  Widget _showRouteButton(BuildContext context) {
+    return ElevatedButton(
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => RouteAddPage()),
+        );
+      },
+      child: const Text('Route hinzufügen'),
     );
   }
 
@@ -281,69 +293,82 @@ class _MapScenePageState extends State<MapScenePage> with AutomaticKeepAliveClie
       body: SingleChildScrollView(
         child: Column(
           children: [
-            Autocomplete(
-              optionsBuilder: (TextEditingValue textEditingValue) {
-                if (textEditingValue.text.isEmpty) {
-                  return autoCompleteDataSchwammerl;
-                } else {
-                  return autoCompleteDataSchwammerl.where((word) => word
-                      .toLowerCase()
-                      .contains(textEditingValue.text.toLowerCase()));
-                }
-              },
-              optionsViewBuilder:
-                  (context, Function(String) onSelected, options) {
-                return Material(
-                  elevation: 4,
-                  child: ListView.separated(
-                    padding: EdgeInsets.zero,
-                    itemBuilder: (context, index) {
-                      final option = options.elementAt(index);
-                      return ListTile(
-                        title: SubstringHighlight(
-                          text: option.toString(),
-                          term: searchController.text,
-                          textStyleHighlight: TextStyle(fontWeight: FontWeight.w700),
+            Row(
+              children: [
+                Expanded(
+                  child: Autocomplete(
+                    optionsBuilder: (TextEditingValue textEditingValue) {
+                      if (textEditingValue.text.isEmpty) {
+                        return List<String>.from(autoCompleteDataSchwammerl);
+                      } else {
+                        return autoCompleteDataSchwammerl.where((word) => word
+                            .toLowerCase()
+                            .contains(textEditingValue.text.toLowerCase()));
+                      }
+                    },
+                    optionsViewBuilder:
+                        (context, Function(String) onSelected, options) {
+                      return Material(
+                        elevation: 4,
+                        child: ListView.separated(
+                          padding: EdgeInsets.zero,
+                          itemBuilder: (context, index) {
+                            final option = options.elementAt(index);
+                            return ListTile(
+                              title: SubstringHighlight(
+                                text: option.toString(),
+                                term: searchController.text,
+                                textStyleHighlight: TextStyle(fontWeight: FontWeight.w700),
+                              ),
+                              onTap: () {
+                                onSelected(option.toString());
+                              },
+                            );
+                          },
+                          separatorBuilder: (context, index) => Divider(),
+                          itemCount: options.length,
                         ),
-                        onTap: () {
-                          onSelected(option.toString());
-                        },
                       );
                     },
-                    separatorBuilder: (context, index) => Divider(),
-                    itemCount: options.length,
+                    onSelected: (selectedString) {
+                      FocusScope.of(context).unfocus();
+                      print(selectedString);
+                    },
+                    fieldViewBuilder:
+                        (context, controller, focusNode, onEditingComplete) {
+                      searchController = controller;
+                      return TextField(
+                        controller: controller,
+                        focusNode: focusNode,
+                        onEditingComplete: onEditingComplete,
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Colors.grey[300]),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Colors.grey[300]),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Colors.grey[300]),
+                          ),
+                          hintText: "Schwammerl/Route suchen",
+                          prefixIcon: Icon(Icons.search),
+                        ),
+                      );
+                    },
                   ),
-                );
-              },
-              onSelected: (selectedString) {
-                FocusScope.of(context).unfocus();
-                print(selectedString);
-              },
-              fieldViewBuilder:
-                  (context, controller, focusNode, onEditingComplete) {
-                searchController = controller;
-                return TextField(
-                  controller: controller,
-                  focusNode: focusNode,
-                  onEditingComplete: onEditingComplete,
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: Colors.grey[300]),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: Colors.grey[300]),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: Colors.grey[300]),
-                    ),
-                    hintText: "Schwammerl/Route suchen",
-                    prefixIcon: Icon(Icons.search),
-                  ),
-                );
-              },
+                ),
+                IconButton(
+                  icon: Icon(Icons.cancel_outlined),
+                  onPressed: () {
+                    FocusScope.of(context).unfocus();
+                    searchController.clear();
+                  },
+                ),
+              ],
             ),
             AspectRatio(
               aspectRatio: 1,

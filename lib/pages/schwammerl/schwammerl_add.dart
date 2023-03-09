@@ -60,7 +60,7 @@ class _SchwammerlAddPageState extends State<SchwammerlAddPage> {
     while(!isUploading)
     {
       return addSchwammerl
-          .add({'name': name, 'info': info, 'coords' : GeoPoint(lat, long), 'image' : imageUrl})
+          .add({'name': name, 'info': info, 'coords' : GeoPoint(lat, long), 'image' : imageUrl, 'isSelected' : false})
           .then((value) => print('Schwammerl Place added'))
           .catchError((_) => print('Something Error In registering Schwammerl'));
     }
@@ -128,70 +128,83 @@ class _SchwammerlAddPageState extends State<SchwammerlAddPage> {
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
                   children: [
-                    Autocomplete(
-                      optionsBuilder: (TextEditingValue textEditingValue) {
-                        if (textEditingValue.text.isEmpty) {
-                          return const Iterable<String>.empty();
-                        } else {
-                          return autoCompleteDataInfo.where((word) => word
-                              .toLowerCase()
-                              .contains(textEditingValue.text.toLowerCase()));
-                        }
-                      },
-                      optionsViewBuilder:
-                          (context, Function(String) onSelected, options) {
-                        return Material(
-                          elevation: 4,
-                          child: ListView.separated(
-                            padding: EdgeInsets.zero,
-                            itemBuilder: (context, index) {
-                              final option = options.elementAt(index);
-                              return ListTile(
-                                title: SubstringHighlight(
-                                  text: option.toString(),
-                                  term: nameController.text,
-                                  textStyleHighlight: TextStyle(fontWeight: FontWeight.w700),
-                                ),
-                                onTap: () {
-                                  FocusScope.of(context).unfocus();
-                                  onSelected(option.toString());
+                    Row(
+                      children: [
+                        Expanded(
+                        child: Autocomplete(
+                          optionsBuilder: (TextEditingValue textEditingValue) {
+                            if (textEditingValue.text.isEmpty) {
+                              return autoCompleteDataInfo;
+                            } else {
+                              return autoCompleteDataInfo.where((word) => word
+                                  .toLowerCase()
+                                  .contains(textEditingValue.text.toLowerCase()));
+                            }
+                          },
+                          optionsViewBuilder:
+                              (context, Function(String) onSelected, options) {
+                            return Material(
+                              elevation: 4,
+                              child: ListView.separated(
+                                padding: EdgeInsets.zero,
+                                itemBuilder: (context, index) {
+                                  final option = options.elementAt(index);
+                                  return ListTile(
+                                    title: SubstringHighlight(
+                                      text: option.toString(),
+                                      term: nameController.text,
+                                      textStyleHighlight: TextStyle(fontWeight: FontWeight.w700),
+                                    ),
+                                    onTap: () {
+                                      FocusScope.of(context).unfocus();
+                                      onSelected(option.toString());
+                                    },
+                                  );
                                 },
-                              );
-                            },
-                            separatorBuilder: (context, index) => Divider(),
-                            itemCount: options.length,
-                          ),
-                        );
-                      },
-                      onSelected: (selectedString) {
-                        FocusScope.of(context).unfocus();
-                        print(selectedString);
-                      },
-                      fieldViewBuilder:
-                          (context, controller, focusNode, onEditingComplete) {
-                        nameController = controller;
-                        return TextField(
-                          controller: controller,
-                          focusNode: focusNode,
-                          onEditingComplete: onEditingComplete,
-                          decoration: InputDecoration(
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide(color: Colors.grey[300]!),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide(color: Colors.grey[300]!),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide(color: Colors.grey[300]!),
-                            ),
-                            hintText: "Name des Schwammerls",
-                            prefixIcon: Icon(Icons.search),
-                          ),
-                        );
-                      },
+                                separatorBuilder: (context, index) => Divider(),
+                                itemCount: options.length,
+                              ),
+                            );
+                          },
+                          onSelected: (selectedString) {
+                            FocusScope.of(context).unfocus();
+                            print(selectedString);
+                          },
+                          fieldViewBuilder:
+                              (context, controller, focusNode, onEditingComplete) {
+                            nameController = controller;
+                            return TextField(
+                              controller: controller,
+                              focusNode: focusNode,
+                              onEditingComplete: onEditingComplete,
+                              decoration: InputDecoration(
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  borderSide: BorderSide(color: Colors.grey[300]!),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  borderSide: BorderSide(color: Colors.grey[300]!),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  borderSide: BorderSide(color: Colors.grey[300]!),
+                                ),
+                                hintText: "Name des Schwammerls",
+                                prefixIcon: Icon(Icons.search),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.cancel_outlined),
+                        onPressed: () {
+                          FocusScope.of(context).unfocus();
+                          nameController.clear();
+                        },
+                      ),
+                      ],
                     ),
                     CustomTextEditFieldNoVal(
                       controller: infoController,
@@ -305,8 +318,8 @@ class _SchwammerlAddPageState extends State<SchwammerlAddPage> {
                         child: Column(
                           children: [
                             SizedBox(
-                                width: 294,
-                                height: 392,
+                                width: 100,
+                                height: 200,
                                 child: SingleChildScrollView(
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.center,

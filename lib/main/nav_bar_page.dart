@@ -32,6 +32,9 @@ class _NavBarPageState extends State<NavBarPage> {
     return Scaffold(
       bottomNavigationBar: BottomNavigationBar(
         onTap: (index) {
+          if (Navigator.canPop(context)) {
+            Navigator.pop(context);
+          }
           setState(() {
             currentIndex = index;
           });

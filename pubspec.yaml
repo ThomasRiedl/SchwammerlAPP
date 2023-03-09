@@ -42,8 +42,8 @@ dependencies:
   cupertino_icons: ^1.0.2
   firebase_storage: ^10.3.11
   image_picker: ^0.8.5+3
-
-
+  checkbox_grouped: ^1.8.1
+  syncfusion_flutter_datepicker: "20.4.44"
 dependency_overrides:
   firebase_core_platform_interface: 4.5.1
 
@@ -63,7 +63,8 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
-
+  assets:
+    - assets/images/
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
@@ -99,3 +100,4 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
+

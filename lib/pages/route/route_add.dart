@@ -1,13 +1,9 @@
-import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:schwammerlapp/constraints/textfieldNoVal.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
-import 'package:geolocator/geolocator.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:substring_highlight/substring_highlight.dart';
+import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
 class RouteAddPage extends StatefulWidget {
 
@@ -25,79 +21,111 @@ class _RouteAddPageState extends State<RouteAddPage> {
 
   String name = '';
   String info = '';
-  String imageUrl = '';
 
-  double long = 0;
-  double lat = 0;
-  late Position position;
+  late TextEditingController searchController;
 
-  bool isUploading = false;
+  CollectionReference addRoute = FirebaseFirestore.instance.collection('users').doc(FirebaseAuth.instance.currentUser!.uid.toString()).collection('routes');
+  final CollectionReference schwammerlCollection = FirebaseFirestore.instance.collection('users').doc(FirebaseAuth.instance.currentUser!.uid.toString()).collection('locations');
 
-  final infoController = TextEditingController();
-
-  bool isLoading = false;
+  final Stream<QuerySnapshot> schwammerlRecords = FirebaseFirestore.instance.collection('users').doc(FirebaseAuth.instance.currentUser!.uid.toString()).collection('locations').snapshots();
 
   List<String> autoCompleteDataInfo = [""];
 
-  late TextEditingController nameController;
+  bool isSelectedSchwammerl = false;
 
-  CollectionReference addSchwammerl = FirebaseFirestore.instance.collection('users').doc(FirebaseAuth.instance.currentUser!.uid.toString()).collection('locations');
-
-  final Stream<QuerySnapshot> infoRecords = FirebaseFirestore.instance.collection('schwammerl').snapshots();
+  String selectedDate = '';
 
   @override
   void initState() {
-    getLocation();
+
   }
 
   _clearText() {
-    nameController.clear();
-    infoController.clear();
+    searchController.clear();
   }
 
-  Future<void>? _registerSchwammerl() {
-    while(!isUploading)
-    {
-      return addSchwammerl
-          .add({'name': name, 'info': info, 'coords' : GeoPoint(lat, long), 'image' : imageUrl})
-          .then((value) => print('Schwammerl Place added'))
-          .catchError((_) => print('Something Error In registering Schwammerl'));
+  Future<void> _updateSchwammerl(id) {
+    return schwammerlCollection
+        .doc(id)
+        .update({'isSelectedSchwammerl' : isSelectedSchwammerl, 'isSelected' : isSelectedSchwammerl})
+        .then((value) => print("Schwammerl Updated"))
+        .catchError((error) => print("Failed to update selected Schwammerl: $error"));
+  }
+
+  void _onSelectionChanged(DateRangePickerSelectionChangedArgs dateRangePickerSelectionChangedArgs)
+  {
+    if (dateRangePickerSelectionChangedArgs.value.endDate != null) {
+      DateTime startDate = dateRangePickerSelectionChangedArgs.value.startDate!;
+      DateTime endDate = dateRangePickerSelectionChangedArgs.value.endDate!;
+
+      String startDateString = '${startDate.day}-${_twoDigitString(startDate.month)}-${_twoDigitString(startDate.year)}';
+
+      String endDateString = '${endDate.day}-${_twoDigitString(endDate.month)}-${_twoDigitString(endDate.year)}';
+
+      setState(() {
+        selectedDate = '$startDateString - $endDateString';
+      });
     }
-    return null;
   }
 
-  void getLocation() async {
-    position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-
-    long = position.longitude;
-    lat = position.latitude;
+  String _twoDigitString(int value) {
+    return value.toString().padLeft(2, '0');
   }
 
-  Widget _deleteImageButton() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center ,//Center Column contents vertically,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        ElevatedButton(
-          onPressed: _deleteImage,
-          child: const Text('Bild Entfernen'),
+  void _showCalender(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(25.0),
         ),
-      ],
+      ),
+      builder: (context) => Container(
+        padding: EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
+              child: SfDateRangePicker(
+                view: DateRangePickerView.month,
+                selectionMode: DateRangePickerSelectionMode.range,
+                onSelectionChanged: _onSelectionChanged,
+              ),
+            ),
+          ],
+        ),
+      ),
+    ).then((result) {
+      setState(() {
+        FocusManager.instance.primaryFocus?.unfocus();
+      });}
     );
   }
 
-  _deleteImage()
-  {
-    imageUrl = "";
-    setState(() {
+  _showNameDialog(_) {
+    showBottomSheet(
+        context: context,
+        enableDrag: false,
+        builder: (context) => StatefulBuilder(builder: (context, setState) {
+            return SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Container(
 
-    });
+              ),
+            );
+        }
+        )
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    WidgetsBinding.instance.addPostFrameCallback(_showNameDialog);
     return StreamBuilder<QuerySnapshot>(
-        stream: infoRecords,
+        stream: schwammerlRecords,
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (snapshot.hasError) {
             print('Something Wrong in AddPage');
@@ -107,15 +135,15 @@ class _RouteAddPageState extends State<RouteAddPage> {
               child: CircularProgressIndicator(),
             );
           }
-          final List firebaseDataInfo = [];
+          final List firebaseDataSchwammerl = [];
           snapshot.data?.docs.map((DocumentSnapshot documentSnapshot) {
             Map store = documentSnapshot.data() as Map<String, dynamic>;
-            firebaseDataInfo.add(store);
+            firebaseDataSchwammerl.add(store);
             store['id'] = documentSnapshot.id;
           }).toList();
           autoCompleteDataInfo.clear();
-          for (int i = 0; i < firebaseDataInfo.length; i++) {
-            String name = firebaseDataInfo[i]['name'].toString();
+          for (int i = 0; i < firebaseDataSchwammerl.length; i++) {
+            String name = firebaseDataSchwammerl[i]['name'].toString();
             autoCompleteDataInfo.add(name);
           }
           return Scaffold(
@@ -127,203 +155,179 @@ class _RouteAddPageState extends State<RouteAddPage> {
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
                   children: [
-                    Autocomplete(
-                      optionsBuilder: (TextEditingValue textEditingValue) {
-                        if (textEditingValue.text.isEmpty) {
-                          return const Iterable<String>.empty();
-                        } else {
-                          return autoCompleteDataInfo.where((word) => word
-                              .toLowerCase()
-                              .contains(textEditingValue.text.toLowerCase()));
-                        }
-                      },
-                      optionsViewBuilder:
-                          (context, Function(String) onSelected, options) {
-                        return Material(
-                          elevation: 4,
-                          child: ListView.separated(
-                            padding: EdgeInsets.zero,
-                            itemBuilder: (context, index) {
-                              final option = options.elementAt(index);
-                              return ListTile(
-                                title: SubstringHighlight(
-                                  text: option.toString(),
-                                  term: nameController.text,
-                                  textStyleHighlight: TextStyle(fontWeight: FontWeight.w700),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Autocomplete(
+                            optionsBuilder: (TextEditingValue textEditingValue) {
+                              if (textEditingValue.text.isEmpty) {
+                                return List<String>.from(autoCompleteDataInfo);
+                              } else {
+                                return autoCompleteDataInfo.where((word) => word
+                                    .toLowerCase()
+                                    .contains(textEditingValue.text.toLowerCase()));
+                              }
+                            },
+                            optionsViewBuilder:
+                                (context, Function(String) onSelected, options) {
+                              return Material(
+                                elevation: 4,
+                                child: ListView.separated(
+                                  padding: EdgeInsets.zero,
+                                  itemBuilder: (context, index) {
+                                    final option = options.elementAt(index);
+                                    return ListTile(
+                                      title: SubstringHighlight(
+                                        text: option.toString(),
+                                        term: searchController.text,
+                                        textStyleHighlight: TextStyle(fontWeight: FontWeight.w700),
+                                      ),
+                                      onTap: () {
+                                        FocusScope.of(context).unfocus();
+                                        onSelected(option.toString());
+                                      },
+                                    );
+                                  },
+                                  separatorBuilder: (context, index) => Divider(),
+                                  itemCount: options.length,
                                 ),
-                                onTap: () {
-                                  FocusScope.of(context).unfocus();
-                                  onSelected(option.toString());
-                                },
                               );
                             },
-                            separatorBuilder: (context, index) => Divider(),
-                            itemCount: options.length,
+                            onSelected: (selectedString) {
+                              FocusScope.of(context).unfocus();
+                              print(selectedString);
+                            },
+                            fieldViewBuilder:
+                                (context, controller, focusNode, onEditingComplete) {
+                              searchController = controller;
+                              return TextField(
+                                controller: controller,
+                                focusNode: focusNode,
+                                onEditingComplete: onEditingComplete,
+                                decoration: InputDecoration(
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                    borderSide: BorderSide(color: Colors.grey[300]!),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                    borderSide: BorderSide(color: Colors.grey[300]!),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                    borderSide: BorderSide(color: Colors.grey[300]!),
+                                  ),
+                                  hintText: "Name des Schwammerls",
+                                  prefixIcon: Icon(Icons.search),
+                                ),
+                              );
+                            },
                           ),
-                        );
-                      },
-                      onSelected: (selectedString) {
-                        FocusScope.of(context).unfocus();
-                        print(selectedString);
-                      },
-                      fieldViewBuilder:
-                          (context, controller, focusNode, onEditingComplete) {
-                        nameController = controller;
-                        return TextField(
-                          controller: controller,
-                          focusNode: focusNode,
-                          onEditingComplete: onEditingComplete,
-                          decoration: InputDecoration(
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide(color: Colors.grey[300]!),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide(color: Colors.grey[300]!),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide(color: Colors.grey[300]!),
-                            ),
-                            hintText: "Name des Schwammerls",
-                            prefixIcon: Icon(Icons.search),
-                          ),
-                        );
-                      },
-                    ),
-                    CustomTextEditFieldNoVal(
-                      controller: infoController,
-                      labelttxt: 'Info',
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        ElevatedButton(
-                          onPressed: _clearText,
-                          style: ButtonStyle(
-                            backgroundColor: MaterialStateProperty.all(Colors.orange),
-                          ),
-                          child: const Text('Löschen'),
                         ),
                         IconButton(
-                            onPressed: () async{
-                              PickedFile? pickedFile = await ImagePicker().getImage(
-                                source: ImageSource.camera,
-                                maxWidth: 1000,
-                                maxHeight: 1600,
-                                imageQuality: 50,
-                              );
-                              if (pickedFile != null) {
-                                File imageFileCamera = File(pickedFile.path);
-
-                                String uniqueFileName =
-                                DateTime.now().millisecondsSinceEpoch.toString();
-
-                                Reference referenceRoot = FirebaseStorage.instance.ref();
-                                Reference referenceDirImages =
-                                referenceRoot.child('images');
-
-                                Reference referenceImageToUpload =
-                                referenceDirImages.child(uniqueFileName);
-
-                                try {
-                                  setState(() => isUploading = true);
-                                  UploadTask uploadTask =  referenceImageToUpload.putFile(File(imageFileCamera!.path));
-
-                                  imageUrl = await (await uploadTask).ref.getDownloadURL();
-                                } catch (error) {
-                                  setState(() => isUploading = false);
-                                }
-                                setState(() => isUploading = false);
-                              }
-                            },
-                            icon: Icon(Icons.camera_alt)),
-                        IconButton(
-                            onPressed: () async {
-                              PickedFile? pickedFile = await ImagePicker().getImage(
-                                source: ImageSource.gallery,
-                                maxWidth: 1000,
-                                maxHeight: 1600,
-                                imageQuality: 50,
-                              );
-                              if (pickedFile != null) {
-                                File imageFileGallery = File(pickedFile.path);
-
-                                String uniqueFileName =
-                                DateTime.now().millisecondsSinceEpoch.toString();
-
-                                Reference referenceRoot = FirebaseStorage.instance.ref();
-                                Reference referenceDirImages =
-                                referenceRoot.child('images');
-
-                                Reference referenceImageToUpload =
-                                referenceDirImages.child(uniqueFileName);
-
-                                try {
-                                  setState(() => isUploading = true);
-                                  UploadTask uploadTask =  referenceImageToUpload.putFile(File(imageFileGallery!.path));
-
-                                  imageUrl = await (await uploadTask).ref.getDownloadURL();
-
-                                } catch (error) {
-                                  setState(() => isUploading = false);
-                                }
-                                setState(() => isUploading = false);
-                              }
-                            },
-                            icon: const Icon(Icons.folder_copy_rounded)),
-                        ElevatedButton.icon(
-                          onPressed: isUploading ? null :() {
-                            setState(() {
-                              name = nameController.text;
-                              info = infoController.text;
-                              _registerSchwammerl();
-                              _clearText();
-                              Navigator.pop(context);
-                            });
+                          icon: Icon(Icons.calendar_month_rounded),
+                          onPressed: () {
+                            _showCalender(context);
                           },
-                          style: ButtonStyle(
-                            backgroundColor: MaterialStateProperty.all(Colors.orange),
-                          ), icon: isUploading ? Container(
-                          width: 24,
-                          height: 24,
-                          padding: const EdgeInsets.all(2.0),
-                          child: const CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 3,
-                          ),
-                        ) : const Icon(Icons.cloud_upload),
-                          label: const Text('Platz speichern'),
                         ),
                       ],
                     ),
-                    SizedBox(height: 20),
-                    AspectRatio(
-                        aspectRatio: 1,
-                        child: Column(
-                          children: [
-                            SizedBox(
-                                width: 294,
-                                height: 392,
-                                child: SingleChildScrollView(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.center,
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      if(imageUrl == "")
-                                        const Text(''),
-                                      if(imageUrl != "")
-                                        Image.network(imageUrl)
-                                    ],
-                                  ),
-                                )
-                            )
-                          ],
-                        )
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(8, 0, 8, 0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          ElevatedButton(
+                            onPressed: () {
+                              for (var i = 0; i < firebaseDataSchwammerl.length; i++) {
+                                if(searchController.text == firebaseDataSchwammerl[i]['name'])
+                                {
+                                  isSelectedSchwammerl = firebaseDataSchwammerl[i]['isSelected'];
+                                  isSelectedSchwammerl = !isSelectedSchwammerl;
+                                  _updateSchwammerl(firebaseDataSchwammerl[i]['id']);
+                                  _clearText();
+                                }
+                              }
+                            },
+                            style: ButtonStyle(
+                              backgroundColor: MaterialStateProperty.all(Colors.orange),
+                            ),
+                            child: const Text('Schwammerl hinzufügen'),
+                          ),
+                        ],
+                      ),
                     ),
-                    SizedBox(height: 10),
-                    _deleteImageButton(),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(8, 0, 8, 0),
+                          child: Text(selectedDate),
+                        ),
+                      ],
+                    ),
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        SizedBox(
+                          width: 400,
+                          height: MediaQuery.of(context).size.height-300,
+                          child: ListView(
+                        padding: EdgeInsets.zero,
+                        shrinkWrap: true,
+                        scrollDirection: Axis.vertical,
+                        children: [
+                          for (var i = 0; i < firebaseDataSchwammerl.length; i++) ...[
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Container(
+                                width: 100,
+                                height: 70,
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: Colors.orange),
+                                  borderRadius: BorderRadius.circular(0),
+                                ), //BoxDecoration
+                                child: CheckboxListTile(
+                                  title: Text(firebaseDataSchwammerl[i]['name']),
+                                  subtitle: Text(firebaseDataSchwammerl[i]['info'] == null ? '' : firebaseDataSchwammerl[i]['info']),
+                                  secondary: Icon(Icons.travel_explore),
+                                  autofocus: false,
+                                  checkColor: Colors.white,
+                                  selected: firebaseDataSchwammerl[i]['isSelected'],
+                                  value: firebaseDataSchwammerl[i]['isSelected'],
+                                  onChanged: (newValue) {
+                                    setState(() {
+                                      isSelectedSchwammerl = firebaseDataSchwammerl[i]['isSelected'];
+                                      isSelectedSchwammerl = !isSelectedSchwammerl;
+                                      _updateSchwammerl(firebaseDataSchwammerl[i]['id']);
+                                    });
+                                  },
+                                ), //CheckboxListTile
+                              ), //Container
+                            ),
+                          ],
+                        ],//Padding
+                          ), //C
+                        ),// enter//SizedBox
+                      ],
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          ElevatedButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                            style: ButtonStyle(
+                              backgroundColor: MaterialStateProperty.all(Colors.orange),
+                            ),
+                            child: const Text('Route speichern'),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),

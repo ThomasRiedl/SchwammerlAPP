@@ -122,7 +122,7 @@ class _SchwammerlInfoPageState extends State<SchwammerlInfoPage> {
                             child: SizedBox(
                               child: Center(
                                 child: Text(
-                                  firebaseData[i]['info'],
+                                  firebaseData[i]['latName'],
                                   style: txt2,
                                 ),
                               ),

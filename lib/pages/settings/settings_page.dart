@@ -373,8 +373,30 @@ class _SettingsPageState extends State<SettingsPage> {
       }
         return Scaffold(
           appBar: AppBar(
-            title: const Text('Schwammerl App'),
+            title: const Text('Einstellungen'),
             backgroundColor: Colors.orange,
+            actions: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: ElevatedButton(
+                  onPressed: () {
+                    signOut();
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const LoginPage(),
+                        ));
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor:Colors.orangeAccent,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                  ),
+                  child: const Text('Abmelden'),
+                ),
+              ),
+            ],
           ),
           body: Form(
             key: _formkey,
@@ -491,25 +513,6 @@ class _SettingsPageState extends State<SettingsPage> {
                       ),
                     )
                   ],
-                ),
-                SizedBox(height: 20),
-                AspectRatio(
-                  aspectRatio: 1,
-                  child: Column(
-                    children: [
-                      SizedBox(
-                          width: 294,
-                          height: 392,
-                          child: SingleChildScrollView(
-                            child: Column(
-                                children: <Widget>[
-                                  _signOutButton(),
-                                ]
-                            ),
-                          )
-                      ),
-                    ],
-                  ),
                 ),
               ],
             ),

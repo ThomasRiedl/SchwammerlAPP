@@ -2,6 +2,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:schwammerlapp/pages/mapScene/mapScene_page.dart';
 import 'package:schwammerlapp/pages/info/schwammerl_info_page.dart';
+import 'package:schwammerlapp/pages/route/route_home.dart';
+import 'package:schwammerlapp/pages/schwammerl/schwammerl_home.dart';
 import 'package:schwammerlapp/pages/settings/settings_page.dart';
 
 class NavBarPage extends StatefulWidget {
@@ -50,18 +52,34 @@ class _NavBarPageState extends State<NavBarPage> {
           BottomNavigationBarItem(
             icon: Icon(
               Icons.info_outline,
-              size: 32,
+              size: 28,
             ),
             label: '--',
-            tooltip: '',
+            tooltip: 'Info',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(
+              Icons.gps_fixed,
+              size: 28,
+            ),
+            label: '--',
+            tooltip: 'Schwammerl',
           ),
           BottomNavigationBarItem(
             icon: Icon(
               Icons.arrow_upward,
               size: 32,
             ),
-            label: 'Home',
-            tooltip: '',
+            label: '--',
+            tooltip: 'Map',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(
+              Icons.route,
+              size: 28,
+            ),
+            label: '--',
+            tooltip: 'Routen',
           ),
           BottomNavigationBarItem(
             icon: Icon(
@@ -73,14 +91,16 @@ class _NavBarPageState extends State<NavBarPage> {
               size: 32,
             ),
             label: '--',
-            tooltip: '',
+            tooltip: 'Einstellungen',
           ),
         ],
       ),
       body: IndexedStack(
         children: <Widget>[
           SchwammerlInfoPage(),
+          SchwammerlHomePage(),
           MapScenePage(),
+          RouteHomePage(),
           SettingsPage(docID: currentUser.toString(),),
         ],
         index: currentIndex,

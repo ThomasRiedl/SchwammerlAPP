@@ -121,7 +121,7 @@ class _SchwammerlAddPageState extends State<SchwammerlAddPage> {
           }
           return Scaffold(
             appBar: AppBar(
-              title: const Text('Schwammerlplätze'),
+              title: const Text('Schwammerl'),
             ),
             body: SingleChildScrollView(
               child: Padding(

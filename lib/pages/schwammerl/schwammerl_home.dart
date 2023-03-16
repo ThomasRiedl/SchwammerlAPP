@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:schwammerlapp/constraints/textstyle.dart';
+import 'package:schwammerlapp/pages/schwammerl/addInfo.dart';
+import 'package:schwammerlapp/pages/schwammerl/schwammerl_add.dart';
 import 'package:schwammerlapp/pages/schwammerl/schwammerl_edit.dart';
 import 'package:flutter/material.dart';
 
@@ -53,6 +55,27 @@ class _SchwammerlHomePageState extends State<SchwammerlHomePage> {
           return Scaffold(
             appBar: AppBar(
               title: _title(),
+              actions: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const SchwammerlAddPage(),
+                          ));
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor:Colors.orangeAccent,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                    ),
+                    child: const Text('Schwammerl hinzufügen'),
+                  ),
+                ),
+              ],
             ),
             body: Container(
               padding: const EdgeInsets.all(20),

@@ -10,17 +10,15 @@ import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:substring_highlight/substring_highlight.dart';
 
-class SchwammerlAddPage extends StatefulWidget {
+class InfoAddPage extends StatefulWidget {
 
-  const SchwammerlAddPage({Key? key}) : super(key: key);
+  const InfoAddPage({Key? key}) : super(key: key);
 
   @override
-  State<SchwammerlAddPage> createState() => _SchwammerlAddPageState();
+  State<InfoAddPage> createState() => _InfoAddPageState();
 }
 
-class _SchwammerlAddPageState extends State<SchwammerlAddPage> {
-
-  final _formkey = GlobalKey<FormState>();
+class _InfoAddPageState extends State<InfoAddPage> {
 
   final currentUser = FirebaseAuth.instance.currentUser!.uid.toString();
 

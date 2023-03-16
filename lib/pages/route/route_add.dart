@@ -1,6 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:schwammerlapp/constraints/textfieldNoVal.dart';
 import 'dart:async';
 import 'package:substring_highlight/substring_highlight.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
@@ -15,13 +17,13 @@ class RouteAddPage extends StatefulWidget {
 
 class _RouteAddPageState extends State<RouteAddPage> {
 
-  final _formkey = GlobalKey<FormState>();
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
 
   final currentUser = FirebaseAuth.instance.currentUser!.uid.toString();
 
   String name = '';
   String info = '';
-
+  String routeName = '';
   late TextEditingController searchController;
 
   CollectionReference addRoute = FirebaseFirestore.instance.collection('users').doc(FirebaseAuth.instance.currentUser!.uid.toString()).collection('routes');
@@ -30,18 +32,33 @@ class _RouteAddPageState extends State<RouteAddPage> {
   final Stream<QuerySnapshot> schwammerlRecords = FirebaseFirestore.instance.collection('users').doc(FirebaseAuth.instance.currentUser!.uid.toString()).collection('locations').snapshots();
 
   List<String> autoCompleteDataInfo = [""];
+  List<String> selectedSchwammerlName = [];
+  List<GeoPoint> selectedSchwammerlCoords = [];
 
   bool isSelectedSchwammerl = false;
 
   String selectedDate = '';
 
+  int checkboxCounter = 0;
+  int loadCounter = 1;
+
+  final routeNameController = TextEditingController();
+
   @override
   void initState() {
-
   }
 
   _clearText() {
     searchController.clear();
+  }
+
+  Future<void> _updateSchwammerlSelected(id) {
+    isSelectedSchwammerl = false;
+    return schwammerlCollection
+        .doc(id)
+        .update({'isSelected' : isSelectedSchwammerl,})
+        .then((value) => print("Schwammerl Updated"))
+        .catchError((error) => print("Failed to update selected Schwammerl: $error"));
   }
 
   Future<void> _updateSchwammerl(id) {
@@ -49,6 +66,13 @@ class _RouteAddPageState extends State<RouteAddPage> {
         .doc(id)
         .update({'isSelectedSchwammerl' : isSelectedSchwammerl, 'isSelected' : isSelectedSchwammerl})
         .then((value) => print("Schwammerl Updated"))
+        .catchError((error) => print("Failed to update selected Schwammerl: $error"));
+  }
+
+  Future<void> _addRoute() {
+    return addRoute
+        .add({'routeName' : routeName, 'schwammerlNames' : selectedSchwammerlName, 'schwammerlCoords' : selectedSchwammerlCoords})
+        .then((value) => print("Route added"))
         .catchError((error) => print("Failed to update selected Schwammerl: $error"));
   }
 
@@ -105,25 +129,8 @@ class _RouteAddPageState extends State<RouteAddPage> {
     );
   }
 
-  _showNameDialog(_) {
-    showBottomSheet(
-        context: context,
-        enableDrag: false,
-        builder: (context) => StatefulBuilder(builder: (context, setState) {
-            return SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Container(
-
-              ),
-            );
-        }
-        )
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    WidgetsBinding.instance.addPostFrameCallback(_showNameDialog);
     return StreamBuilder<QuerySnapshot>(
         stream: schwammerlRecords,
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
@@ -146,7 +153,14 @@ class _RouteAddPageState extends State<RouteAddPage> {
             String name = firebaseDataSchwammerl[i]['name'].toString();
             autoCompleteDataInfo.add(name);
           }
+          if(loadCounter == 1) {
+            for (int i = 0; i < firebaseDataSchwammerl.length; i++) {
+              _updateSchwammerlSelected(firebaseDataSchwammerl[i]['id']);
+            }
+            loadCounter = loadCounter-1;
+          }
           return Scaffold(
+            key: _scaffoldKey,
             appBar: AppBar(
               title: const Text('Schwammerlplätze'),
             ),
@@ -218,7 +232,6 @@ class _RouteAddPageState extends State<RouteAddPage> {
                                     borderSide: BorderSide(color: Colors.grey[300]!),
                                   ),
                                   hintText: "Name des Schwammerls",
-                                  prefixIcon: Icon(Icons.search),
                                 ),
                               );
                             },
@@ -228,6 +241,13 @@ class _RouteAddPageState extends State<RouteAddPage> {
                           icon: Icon(Icons.calendar_month_rounded),
                           onPressed: () {
                             _showCalender(context);
+                          },
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.cancel_outlined),
+                          onPressed: () {
+                            FocusScope.of(context).unfocus();
+                            searchController.clear();
                           },
                         ),
                       ],
@@ -269,56 +289,87 @@ class _RouteAddPageState extends State<RouteAddPage> {
                     Column(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        SizedBox(
-                          width: 400,
-                          height: MediaQuery.of(context).size.height-300,
-                          child: ListView(
-                        padding: EdgeInsets.zero,
-                        shrinkWrap: true,
-                        scrollDirection: Axis.vertical,
-                        children: [
-                          for (var i = 0; i < firebaseDataSchwammerl.length; i++) ...[
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Container(
-                                width: 100,
-                                height: 70,
-                                decoration: BoxDecoration(
-                                  border: Border.all(color: Colors.orange),
-                                  borderRadius: BorderRadius.circular(0),
-                                ), //BoxDecoration
-                                child: CheckboxListTile(
-                                  title: Text(firebaseDataSchwammerl[i]['name']),
-                                  subtitle: Text(firebaseDataSchwammerl[i]['info'] == null ? '' : firebaseDataSchwammerl[i]['info']),
-                                  secondary: Icon(Icons.travel_explore),
-                                  autofocus: false,
-                                  checkColor: Colors.white,
-                                  selected: firebaseDataSchwammerl[i]['isSelected'],
-                                  value: firebaseDataSchwammerl[i]['isSelected'],
-                                  onChanged: (newValue) {
-                                    setState(() {
-                                      isSelectedSchwammerl = firebaseDataSchwammerl[i]['isSelected'];
-                                      isSelectedSchwammerl = !isSelectedSchwammerl;
-                                      _updateSchwammerl(firebaseDataSchwammerl[i]['id']);
-                                    });
-                                  },
-                                ), //CheckboxListTile
-                              ), //Container
-                            ),
-                          ],
-                        ],//Padding
-                          ), //C
+                        SingleChildScrollView(
+                          child: SizedBox(
+                            width: 400,
+                            height: MediaQuery.of(context).size.height-400,
+                            child: ListView(
+                          padding: EdgeInsets.zero,
+                          shrinkWrap: true,
+                          scrollDirection: Axis.vertical,
+                          children: [
+                            for (var i = 0; i < firebaseDataSchwammerl.length; i++) ...[
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Container(
+                                  width: 100,
+                                  height: 70,
+                                  decoration: BoxDecoration(
+                                    border: Border.all(color: Colors.orange),
+                                    borderRadius: BorderRadius.circular(0),
+                                  ), //BoxDecoration
+                                  child: CheckboxListTile(
+                                    title: Text(firebaseDataSchwammerl[i]['name']),
+                                    subtitle: Text(firebaseDataSchwammerl[i]['info'] == null ? '' : firebaseDataSchwammerl[i]['info']),
+                                    secondary: Icon(Icons.travel_explore),
+                                    autofocus: false,
+                                    checkColor: Colors.white,
+                                    selected: firebaseDataSchwammerl[i]['isSelected'],
+                                    value: firebaseDataSchwammerl[i]['isSelected'],
+                                    onChanged: (newValue) {
+                                      setState(() {
+                                        isSelectedSchwammerl = firebaseDataSchwammerl[i]['isSelected'];
+                                        isSelectedSchwammerl = !isSelectedSchwammerl;
+                                        _updateSchwammerl(firebaseDataSchwammerl[i]['id']);
+                                      });
+                                      selectedSchwammerlName.add(firebaseDataSchwammerl[i]['name']);
+                                      if (firebaseDataSchwammerl[i]['isSelected'] == false) {
+                                        GeoPoint currentCoords = firebaseDataSchwammerl[i]['coords'];
+                                        selectedSchwammerlCoords = List<GeoPoint>.from(selectedSchwammerlCoords.where((gp) => gp != currentCoords));
+                                        selectedSchwammerlCoords.add(currentCoords);
+                                        print(selectedSchwammerlName);
+                                        print(selectedSchwammerlCoords);
+                                      }
+                                    },
+                                  ), //CheckboxListTile
+                                ), //Container
+                              ),
+                            ],
+                          ],//Padding
+                            ), //C
+                          ),
                         ),// enter//SizedBox
                       ],
                     ),
                     Padding(
-                      padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
+                      padding: const EdgeInsets.fromLTRB(2, 8, 2, 0),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
+                          Container(
+                            width: 220,
+                            height: 100,
+                            child: CustomTextEditFieldNoVal(
+                              controller: routeNameController,
+                              labelttxt: 'Name der Route',
+                            ),
+                          ),
                           ElevatedButton(
                             onPressed: () {
-                              Navigator.pop(context);
+                              routeName = routeNameController.text.toString();
+                              if(routeNameController.text == "")
+                              {
+                                var snackBarEmpty = SnackBar(
+                                  content: Text('Bitte geben Sie einen Namen für die Route ein'),
+                                );
+                                ScaffoldMessenger.of(context).removeCurrentSnackBar();
+                                ScaffoldMessenger.of(context).showSnackBar(snackBarEmpty);
+                              }
+                              else
+                              {
+                                _addRoute();
+                                Navigator.pop(context);
+                              }
                             },
                             style: ButtonStyle(
                               backgroundColor: MaterialStateProperty.all(Colors.orange),

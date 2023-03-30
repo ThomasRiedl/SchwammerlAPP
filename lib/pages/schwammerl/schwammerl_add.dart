@@ -9,6 +9,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:substring_highlight/substring_highlight.dart';
+import 'package:intl/intl.dart';
 
 class SchwammerlAddPage extends StatefulWidget {
 
@@ -28,6 +29,9 @@ class _SchwammerlAddPageState extends State<SchwammerlAddPage> {
   String info = '';
   String imageUrl = '';
 
+  DateTime now = DateTime.now();
+  String date = '';
+
   double long = 0;
   double lat = 0;
   late Position position;
@@ -43,12 +47,14 @@ class _SchwammerlAddPageState extends State<SchwammerlAddPage> {
   late TextEditingController nameController;
 
   CollectionReference addSchwammerl = FirebaseFirestore.instance.collection('users').doc(FirebaseAuth.instance.currentUser!.uid.toString()).collection('locations');
+  CollectionReference addAll = FirebaseFirestore.instance.collection('users').doc(FirebaseAuth.instance.currentUser!.uid.toString()).collection('all');
 
   final Stream<QuerySnapshot> infoRecords = FirebaseFirestore.instance.collection('schwammerl').snapshots();
 
   @override
   void initState() {
     getLocation();
+    date = DateFormat('yyyy-MM-dd HH:mm:ss.SSS').format(now);
   }
 
   _clearText() {
@@ -56,11 +62,22 @@ class _SchwammerlAddPageState extends State<SchwammerlAddPage> {
     infoController.clear();
   }
 
-  Future<void>? _registerSchwammerl() {
+  Future<void>? _addSchwammerl() {
     while(!isUploading)
     {
       return addSchwammerl
-          .add({'name': name, 'info': info, 'coords' : GeoPoint(lat, long), 'image' : imageUrl, 'isSelected' : false})
+          .add({'name': name, 'info': info, 'coords' : GeoPoint(lat, long), 'image' : imageUrl, 'isSelected' : false, 'date' : date})
+          .then((value) => print('Schwammerl Place added'))
+          .catchError((_) => print('Something Error In registering Schwammerl'));
+    }
+    return null;
+  }
+
+  Future<void>? _addSchwammerlToAll() {
+    while(!isUploading)
+    {
+      return addAll
+          .add({'name': "Schwammerl: "+name, 'info': info, 'coords' : GeoPoint(lat, long), 'image' : imageUrl, 'isSelected' : false, 'date' : date})
           .then((value) => print('Schwammerl Place added'))
           .catchError((_) => print('Something Error In registering Schwammerl'));
     }
@@ -114,6 +131,7 @@ class _SchwammerlAddPageState extends State<SchwammerlAddPage> {
             firebaseDataInfo.add(store);
             store['id'] = documentSnapshot.id;
           }).toList();
+          firebaseDataInfo.sort((a, b) => a['name'].compareTo(b['name']));
           autoCompleteDataInfo.clear();
           for (int i = 0; i < firebaseDataInfo.length; i++) {
             String name = firebaseDataInfo[i]['name'].toString();
@@ -290,11 +308,22 @@ class _SchwammerlAddPageState extends State<SchwammerlAddPage> {
                         ElevatedButton.icon(
                           onPressed: isUploading ? null :() {
                             setState(() {
-                              name = nameController.text;
-                              info = infoController.text;
-                              _registerSchwammerl();
-                              _clearText();
-                              Navigator.pop(context);
+                              if(nameController.text == "")
+                              {
+                                var snackBarEmpty = SnackBar(
+                                  content: Text('Bitte geben Sie einen Namen für das Schwammerl ein'),
+                                );
+                                ScaffoldMessenger.of(context).removeCurrentSnackBar();
+                                ScaffoldMessenger.of(context).showSnackBar(snackBarEmpty);
+                              }
+                              else {
+                                name = nameController.text;
+                                info = infoController.text;
+                                _addSchwammerl();
+                                _addSchwammerlToAll();
+                                _clearText();
+                                Navigator.pop(context);
+                              }
                             });
                           },
                           style: ButtonStyle(

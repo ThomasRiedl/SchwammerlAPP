@@ -29,7 +29,7 @@ class _SchwammerlHomePageState extends State<SchwammerlHomePage> {
   }
 
   Widget _title() {
-    return const Text('Schwammerlplätze');
+    return const Text('Schwammerl');
   }
 
   @override

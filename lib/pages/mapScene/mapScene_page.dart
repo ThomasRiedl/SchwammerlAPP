@@ -1,5 +1,7 @@
 // @dart=2.9
 
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -44,6 +46,7 @@ class _MapScenePageState extends State<MapScenePage> with AutomaticKeepAliveClie
   int loadCounter = 1;
 
   double zoomLevel = 15;
+  MapType _currentMapType = MapType.normal;
 
   List<String> autoCompleteDataSchwammerl = [""];
   List<String> autoCompleteDataFilter = [""];
@@ -53,6 +56,8 @@ class _MapScenePageState extends State<MapScenePage> with AutomaticKeepAliveClie
 
   final Stream<QuerySnapshot> locationRecords = FirebaseFirestore.instance.collection('users').doc(FirebaseAuth.instance.currentUser.uid.toString()).collection('locations').snapshots();
   final Stream<QuerySnapshot> routeRecords = FirebaseFirestore.instance.collection('users').doc(FirebaseAuth.instance.currentUser.uid.toString()).collection('routes').snapshots();
+  final Stream<QuerySnapshot> allRecords = FirebaseFirestore.instance.collection('users').doc(FirebaseAuth.instance.currentUser.uid.toString()).collection('all').snapshots();
+
   final CollectionReference schwammerlCollection = FirebaseFirestore.instance.collection('users').doc(FirebaseAuth.instance.currentUser.uid.toString()).collection('locations');
 
   void _onMapCreated(GoogleMapController controller) {
@@ -116,23 +121,25 @@ class _MapScenePageState extends State<MapScenePage> with AutomaticKeepAliveClie
           position: LatLng(currentLat, currentLong),
         )
     );
-    var coordinates = FirebaseFirestore.instance.collection('users').doc(FirebaseAuth.instance.currentUser.uid.toString()).collection('locations');
+    var coordinates = FirebaseFirestore.instance.collection('users').doc(FirebaseAuth.instance.currentUser.uid.toString()).collection('all');
     coordinates.snapshots().listen((querySnapshot) {
       querySnapshot.docs.forEach((doc) {
-        var geopoint = doc.data()['coords'] as GeoPoint;
         var name = doc.data()['name'];
         if(searchController.text == "")
         {
-          markers.add(Marker(
-            markerId: MarkerId(doc.id),
-            icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
-            position: LatLng(geopoint.latitude, geopoint.longitude),
-          ));
-        }
-        else
-        {
-          if(name == searchController.text)
-          {
+          if (doc.data()['schwammerlCoords'] != null) {
+            List<dynamic> coordsList = doc.data()['schwammerlCoords'];
+            coordsList.asMap().forEach((index, coords) {
+              var geopoint = doc.data()['schwammerlCoords'][index] as GeoPoint;
+              markers.add(Marker(
+                markerId: MarkerId(index.toString()),
+                icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+                position: LatLng(geopoint.latitude, geopoint.longitude),
+              ));
+            });
+          }
+          if (doc.data()['coords'] != null) {
+            var geopoint = doc.data()['coords'] as GeoPoint;
             markers.add(Marker(
               markerId: MarkerId(doc.id),
               icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
@@ -140,7 +147,31 @@ class _MapScenePageState extends State<MapScenePage> with AutomaticKeepAliveClie
             ));
           }
         }
-
+        else
+        {
+          if(name == searchController.text)
+          {
+            if (doc.data()['schwammerlCoords'] != null) {
+              List<dynamic> coordsList = doc.data()['schwammerlCoords'];
+              coordsList.asMap().forEach((index, coords) {
+                var geopoint = doc.data()['schwammerlCoords'][index] as GeoPoint;
+                markers.add(Marker(
+                  markerId: MarkerId(index.toString()),
+                  icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+                  position: LatLng(geopoint.latitude, geopoint.longitude),
+                ));
+              });
+            }
+            if (doc.data()['coords'] != null) {
+              var geopoint = doc.data()['coords'] as GeoPoint;
+              markers.add(Marker(
+                markerId: MarkerId(doc.id),
+                icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+                position: LatLng(geopoint.latitude, geopoint.longitude),
+              ));
+            }
+          }
+        }
       });
       setState(() {
 
@@ -287,7 +318,6 @@ class _MapScenePageState extends State<MapScenePage> with AutomaticKeepAliveClie
   }
 
   void _showFilter(BuildContext context) {
-    final mergedStream = Rx.merge([locationRecords, routeRecords]);
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -302,7 +332,7 @@ class _MapScenePageState extends State<MapScenePage> with AutomaticKeepAliveClie
           width: MediaQuery.of(context).size.width,
           height: MediaQuery.of(context).size.height,
           child: StreamBuilder<QuerySnapshot>(
-              stream: mergedStream,
+              stream: allRecords,
               builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
                 if (snapshot.hasError) {
                   print('Something Wrong in FilterDialog');
@@ -519,7 +549,7 @@ class _MapScenePageState extends State<MapScenePage> with AutomaticKeepAliveClie
         )
     );
     return StreamBuilder<QuerySnapshot>(
-        stream: locationRecords,
+        stream: allRecords,
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
       if (snapshot.hasError) {
         print('Something Wrong in MapScenePage');
@@ -647,6 +677,7 @@ class _MapScenePageState extends State<MapScenePage> with AutomaticKeepAliveClie
                     zoomLevel = cameraPosition.zoom;
                   },
                   markers: markers,
+                  mapType: _currentMapType,
                   initialCameraPosition: _initialPosition
               ),
             ),
@@ -661,21 +692,40 @@ class _MapScenePageState extends State<MapScenePage> with AutomaticKeepAliveClie
           ]
         ),
         ),
-        floatingActionButton: FloatingActionButton(
-          backgroundColor:Colors.orange,
-          foregroundColor:Colors.white,
-          onPressed:()=>{
-            setState(() {
-
-            }),
-            mapFocused = !mapFocused,
-            focusCamera(LatLng(currentLat, currentLong))
-          },
-          child:const Icon(Icons.navigation),
+        floatingActionButton: Stack(
+          children: [
+            Positioned(
+              bottom: 0,
+              left: 30,
+              child: FloatingActionButton(
+                backgroundColor: Colors.orange,
+                foregroundColor: Colors.white,
+                onPressed: () {
+                  _currentMapType = (_currentMapType == MapType.normal) ? MapType.hybrid : MapType.normal;
+                  setState(() {
+                  });
+                },
+                child: const Icon(Icons.map),
+              ),
+            ),
+            Positioned(
+              bottom: 0,
+              right: 0,
+              child: FloatingActionButton(
+                backgroundColor: Colors.orange,
+                foregroundColor: Colors.white,
+                onPressed: () {
+                  setState(() {
+                  });
+                  mapFocused = !mapFocused;
+                  focusCamera(LatLng(currentLat, currentLong));
+                },
+                child: const Icon(Icons.navigation),
+              ),
+            ),
+          ],
         ),
       );
     });
   }
 }
-
-

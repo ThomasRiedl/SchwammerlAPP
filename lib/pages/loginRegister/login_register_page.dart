@@ -1,7 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../auth.dart';
+import 'package:schwammerlapp/firebase/auth.dart';
+import 'package:schwammerlapp/main/nav_bar_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -17,8 +18,7 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _controllerEmail = TextEditingController();
   final TextEditingController _controllerPassword = TextEditingController();
 
-  CollectionReference addCar =
-  FirebaseFirestore.instance.collection('users');
+  CollectionReference addCar = FirebaseFirestore.instance.collection('users');
 
   var currentUserId = FirebaseAuth.instance.currentUser?.uid;
 
@@ -37,12 +37,21 @@ class _LoginPageState extends State<LoginPage> {
         email: _controllerEmail.text,
         password: _controllerPassword.text,
       );
+      await Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(
+          builder: (context) =>
+              NavBarPage(initialPage: 'MapScenePage'),
+        ),
+            (r) => false,
+      );
     } on FirebaseAuthException catch (e) {
       setState(() {
         errorMessage = e.message;
       });
     }
   }
+
   Future<void> createUserWithEmailAndPassword() async {
     try {
       await Auth().createUserWithEmailAndPassword(
@@ -69,6 +78,9 @@ class _LoginPageState extends State<LoginPage> {
       controller: controller,
       decoration: InputDecoration(
         labelText: title,
+        border: const OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(10)),
+        ),
       ),
     );
   }
@@ -115,6 +127,7 @@ class _LoginPageState extends State<LoginPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             _entryField('email', _controllerEmail),
+            SizedBox(height: 30,),
             _entryField('password', _controllerPassword),
             _errorMessage(),
             _submitButton(),

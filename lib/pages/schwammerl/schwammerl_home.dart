@@ -1,25 +1,26 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:schwammerlapp/constraints.dart/textstyle.dart';
-import 'package:schwammerlapp/pages/addSchwammerl_edit.dart';
+import 'package:schwammerlapp/constraints/textstyle.dart';
+import 'package:schwammerlapp/pages/schwammerl/addInfo.dart';
+import 'package:schwammerlapp/pages/schwammerl/schwammerl_add.dart';
+import 'package:schwammerlapp/pages/schwammerl/schwammerl_edit.dart';
 import 'package:flutter/material.dart';
 
-class AddSchwammerlPage extends StatefulWidget {
-  const AddSchwammerlPage({Key? key}) : super(key: key);
+class SchwammerlHomePage extends StatefulWidget {
+  const SchwammerlHomePage({Key? key}) : super(key: key);
 
   @override
-  State<AddSchwammerlPage> createState() => _AddSchwammerlPageState();
+  State<SchwammerlHomePage> createState() => _SchwammerlHomePageState();
 }
 
-class _AddSchwammerlPageState extends State<AddSchwammerlPage> {
-  // Getting Student all Records
+class _SchwammerlHomePageState extends State<SchwammerlHomePage> {
 
   final Stream<QuerySnapshot> schwammerlRecords =
   FirebaseFirestore.instance.collection('users').doc(FirebaseAuth.instance.currentUser!.uid.toString()).collection('locations').snapshots();
-  // For Deleting Users
   CollectionReference delSchwammerl =
   FirebaseFirestore.instance.collection('users').doc(FirebaseAuth.instance.currentUser!.uid.toString()).collection('locations');
-  Future<void> _delete(id) {
+
+  Future<void> _deleteSchwammerl(id) {
     return delSchwammerl
         .doc(id)
         .delete()
@@ -28,7 +29,7 @@ class _AddSchwammerlPageState extends State<AddSchwammerlPage> {
   }
 
   Widget _title() {
-    return const Text('Schwammerlplätze');
+    return const Text('Schwammerl');
   }
 
   @override
@@ -54,6 +55,27 @@ class _AddSchwammerlPageState extends State<AddSchwammerlPage> {
           return Scaffold(
             appBar: AppBar(
               title: _title(),
+              actions: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const SchwammerlAddPage(),
+                          ));
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor:Colors.orangeAccent,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                    ),
+                    child: const Text('Schwammerl hinzufügen'),
+                  ),
+                ),
+              ],
             ),
             body: Container(
               padding: const EdgeInsets.all(20),
@@ -158,7 +180,7 @@ class _AddSchwammerlPageState extends State<AddSchwammerlPage> {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => EditPage(
+                                        builder: (context) => SchwammerlEditPage(
                                           docID: firebaseData[i]['id'],
                                         ),
                                       ),
@@ -173,7 +195,7 @@ class _AddSchwammerlPageState extends State<AddSchwammerlPage> {
                               Flexible(
                                 child: IconButton(
                                   onPressed: () {
-                                    _delete(firebaseData[i]['id']);
+                                    _deleteSchwammerl(firebaseData[i]['id']);
                                   },
                                   icon: const Icon(
                                     Icons.delete,

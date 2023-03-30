@@ -8,17 +8,14 @@ import 'package:image_picker/image_picker.dart';
 
 //Bug Textfelder werden zurückgesetzt bei IconButtons wegen setState
 
-class EditPage extends StatefulWidget {
-  const EditPage({
-    Key? key,
-    required this.docID,
-  }) : super(key: key);
+class SchwammerlEditPage extends StatefulWidget {
+  const SchwammerlEditPage({Key? key, required this.docID,}) : super(key: key);
   final String docID;
   @override
-  State<EditPage> createState() => _EditPageState();
+  State<SchwammerlEditPage> createState() => _SchwammerlEditPageState();
 }
 
-class _EditPageState extends State<EditPage> {
+class _SchwammerlEditPageState extends State<SchwammerlEditPage> {
 
   final _formkey = GlobalKey<FormState>();
 

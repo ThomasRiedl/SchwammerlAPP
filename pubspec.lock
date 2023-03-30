@@ -330,7 +330,7 @@ packages:
       name: image_picker
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.8.7"
+    version: "0.8.7+1"
   image_picker_android:
     dependency: transitive
     description:
@@ -351,7 +351,7 @@ packages:
       name: image_picker_ios
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.8.7+1"
+    version: "0.8.7+2"
   image_picker_platform_interface:
     dependency: transitive
     description:
@@ -449,7 +449,7 @@ packages:
       name: pointycastle
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.7.1"
+    version: "3.7.2"
   rxdart:
     dependency: "direct main"
     description:

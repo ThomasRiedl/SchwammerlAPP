@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:schwammerlapp/constraints/textstyle.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:substring_highlight/substring_highlight.dart';
 
 class SchwammerlInfoPage extends StatefulWidget {
   const SchwammerlInfoPage({Key? key}) : super(key: key);
@@ -15,8 +16,11 @@ class _SchwammerlInfoPageState extends State<SchwammerlInfoPage> {
   final Stream<QuerySnapshot> schwammerlRecords =
   FirebaseFirestore.instance.collection('schwammerl').snapshots();
 
+  List<String> autoCompleteDataInfo = [""];
+
   final ref = FirebaseStorage.instance.ref().child('fliegenpilz');
   var url = "";
+  TextEditingController nameController = TextEditingController();
 
   final mainColor = const Color(0xFFf8cdd1);
   final appBarColor = const Color(0xFF2F2628);
@@ -56,6 +60,20 @@ class _SchwammerlInfoPageState extends State<SchwammerlInfoPage> {
             firebaseData.add(store);
             store['id'] = documentSnapshot.id;
           }).toList();
+          firebaseData.sort((a, b) => a['name'].compareTo(b['name']));
+          autoCompleteDataInfo.clear();
+          for (int i = 0; i < firebaseData.length; i++) {
+            String name = firebaseData[i]['name'].toString();
+            autoCompleteDataInfo.add(name);
+          }
+          if (nameController.text.isNotEmpty) {
+            int index = firebaseData.indexWhere((element) => element['name'] == nameController.text);
+
+            if (index != -1) {
+              Map<String, dynamic> element = firebaseData.removeAt(index);
+              firebaseData.insert(0, element);
+            }
+          }
           return Scaffold(
             /*appBar: AppBar(
               title: _title(),

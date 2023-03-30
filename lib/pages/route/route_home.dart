@@ -134,7 +134,7 @@ class _RouteHomePageState extends State<RouteHomePage> {
                             child: SizedBox(
                               child: Center(
                                 child: Text(
-                                  firebaseData[i]['routeName'],
+                                  firebaseData[i]['name'],
                                   style: txt2,
                                 ),
                               ),

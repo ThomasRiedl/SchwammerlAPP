@@ -21,6 +21,8 @@ class _NavBarPageState extends State<NavBarPage> {
   late Widget? _currentPage;
   var currentUser = FirebaseAuth.instance.currentUser?.uid;
   int currentIndex = 0;
+  static const navBarColor = const Color(0xFF2F2628);
+  static const iconColor = const Color(0xFFf8cdd1);
 
   @override
   void initState() {
@@ -42,35 +44,49 @@ class _NavBarPageState extends State<NavBarPage> {
           });
         },
         currentIndex: currentIndex,
-        backgroundColor: Colors.black,
-        selectedItemColor: Colors.orange,
+        backgroundColor: navBarColor,
+        selectedItemColor: iconColor,
         unselectedItemColor: Colors.white,
-        showSelectedLabels: false,
+        showSelectedLabels: true,
         showUnselectedLabels: false,
         type: BottomNavigationBarType.fixed,
         items: [
           BottomNavigationBarItem(
-            icon: Icon(
-              Icons.info_outline,
-              size: 28,
+            icon: Container(
+              child: Icon(
+                Icons.info_outline,
+                size: 28,
+              ),
             ),
-            label: '--',
+            activeIcon: Icon(
+                Icons.info,
+                size: 28
+            ),
+            label: 'Info',
             tooltip: 'Info',
           ),
           BottomNavigationBarItem(
             icon: Icon(
-              Icons.gps_fixed,
+              Icons.food_bank_outlined,
               size: 28,
             ),
-            label: '--',
+            activeIcon: Icon(
+              Icons.food_bank,
+              size: 28
+            ),
+            label: 'Schwammerl',
             tooltip: 'Schwammerl',
           ),
           BottomNavigationBarItem(
             icon: Icon(
-              Icons.arrow_upward,
+              Icons.explore_outlined,
               size: 32,
             ),
-            label: '--',
+            activeIcon: Icon(
+              Icons.explore,
+              size: 32
+            ),
+            label: 'Karte',
             tooltip: 'Map',
           ),
           BottomNavigationBarItem(
@@ -78,7 +94,7 @@ class _NavBarPageState extends State<NavBarPage> {
               Icons.route,
               size: 28,
             ),
-            label: '--',
+            label: 'Routen',
             tooltip: 'Routen',
           ),
           BottomNavigationBarItem(
@@ -90,7 +106,7 @@ class _NavBarPageState extends State<NavBarPage> {
               Icons.person_sharp,
               size: 32,
             ),
-            label: '--',
+            label: 'Einstellungen',
             tooltip: 'Einstellungen',
           ),
         ],

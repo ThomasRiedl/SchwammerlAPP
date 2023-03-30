@@ -18,6 +18,9 @@ class _SchwammerlInfoPageState extends State<SchwammerlInfoPage> {
   final ref = FirebaseStorage.instance.ref().child('fliegenpilz');
   var url = "";
 
+  final mainColor = const Color(0xFFf8cdd1);
+  final appBarColor = const Color(0xFF2F2628);
+
   displayImage() async {
     url = await ref.getDownloadURL();
     print(url);
@@ -54,97 +57,107 @@ class _SchwammerlInfoPageState extends State<SchwammerlInfoPage> {
             store['id'] = documentSnapshot.id;
           }).toList();
           return Scaffold(
-            appBar: AppBar(
+            /*appBar: AppBar(
               title: _title(),
-            ),
+              backgroundColor: appBarColor,
+            ),*/
             body: Container(
-              padding: const EdgeInsets.all(20),
-              margin: const EdgeInsets.all(8),
+              //padding: const EdgeInsets.all(20),
+              //margin: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage("assets/images/background.png"),
+                  fit: BoxFit.cover
+                )
+              ),
               child: SingleChildScrollView(
-                child: Table(
-                  border: TableBorder.all(),
-                  columnWidths: const <int, TableColumnWidth>{
-                    1: FixedColumnWidth(150),
-                  },
-                  defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-                  children: <TableRow>[
-                    TableRow(
-                      children: [
-                        TableCell(
-                          child: Container(
-                            color: Colors.orange,
-                            child: Center(
-                              child: Text(
-                                'Name',
-                                style: txt,
-                              ),
-                            ),
-                          ),
-                        ),
-                        TableCell(
-                          child: Container(
-                            color: Colors.orange,
-                            child: Center(
-                              child: Text(
-                                'Info',
-                                style: txt,
-                              ),
-                            ),
-                          ),
-                        ),
-                        TableCell(
-                          child: Container(
-                            color: Colors.orange,
-                            child: Center(
-                              child: Text(
-                                'Bild',
-                                style: txt,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    for (var i = 0; i < firebaseData.length; i++) ...[
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20.0, 25.0, 20.0, 10.0),
+                  child: Table(
+                    border: TableBorder.all(),
+                    columnWidths: const <int, TableColumnWidth>{
+                      1: FixedColumnWidth(150),
+                    },
+                    defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+                    children: <TableRow>[
                       TableRow(
                         children: [
                           TableCell(
-                            child: SizedBox(
+                            child: Container(
+                              color: mainColor,
                               child: Center(
                                 child: Text(
-                                  firebaseData[i]['name'],
-                                  style: txt2,
+                                  'Name',
+                                  style: txt,
                                 ),
                               ),
                             ),
                           ),
                           TableCell(
-                            child: SizedBox(
+                            child: Container(
+                              color: mainColor,
                               child: Center(
                                 child: Text(
-                                  firebaseData[i]['latName'],
-                                  style: txt2,
+                                  'Info',
+                                  style: txt,
                                 ),
                               ),
                             ),
                           ),
                           TableCell(
-                            child: SizedBox(
-                              child: Column(
-                                children: [
-                                  if(firebaseData[i]['image'] == "")
-                                    const Text(''),
-                                  if(firebaseData[i]['image'] != "")
-                                    firebaseData[i].containsKey('image') ? Image.network(
-                                        '${firebaseData[i]['image']}') : Container(),
-                                ],
+                            child: Container(
+                              color: mainColor,
+                              child: Center(
+                                child: Text(
+                                  'Bild',
+                                  style: txt,
+                                ),
                               ),
                             ),
                           ),
                         ],
                       ),
+                      for (var i = 0; i < firebaseData.length; i++) ...[
+                        TableRow(
+                          children: [
+                            TableCell(
+                              child: SizedBox(
+                                child: Center(
+                                  child: Text(
+                                    firebaseData[i]['name'],
+                                    style: txt2,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            TableCell(
+                              child: SizedBox(
+                                child: Center(
+                                  child: Text(
+                                    firebaseData[i]['latName'],
+                                    style: txt2,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            TableCell(
+                              child: SizedBox(
+                                child: Column(
+                                  children: [
+                                    if(firebaseData[i]['image'] == "")
+                                      const Text(''),
+                                    if(firebaseData[i]['image'] != "")
+                                      firebaseData[i].containsKey('image') ? Image.network(
+                                          '${firebaseData[i]['image']}') : Container(),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
               ),
             ),

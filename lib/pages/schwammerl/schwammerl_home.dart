@@ -5,6 +5,7 @@ import 'package:schwammerlapp/pages/schwammerl/addInfo.dart';
 import 'package:schwammerlapp/pages/schwammerl/schwammerl_add.dart';
 import 'package:schwammerlapp/pages/schwammerl/schwammerl_edit.dart';
 import 'package:flutter/material.dart';
+import 'package:substring_highlight/substring_highlight.dart';
 
 class SchwammerlHomePage extends StatefulWidget {
   const SchwammerlHomePage({Key? key}) : super(key: key);
@@ -19,6 +20,12 @@ class _SchwammerlHomePageState extends State<SchwammerlHomePage> {
   FirebaseFirestore.instance.collection('users').doc(FirebaseAuth.instance.currentUser!.uid.toString()).collection('locations').snapshots();
   CollectionReference delSchwammerl =
   FirebaseFirestore.instance.collection('users').doc(FirebaseAuth.instance.currentUser!.uid.toString()).collection('locations');
+
+  final mainColor = const Color(0xFFf8cdd1);
+  final secondaryColor = const Color(0xFF2D2E37);
+
+  int loadCounter = 1;
+  List<bool> _isExpanded = List.generate(100, (_) => false);
 
   Future<void> _deleteSchwammerl(id) {
     return delSchwammerl
@@ -52,6 +59,138 @@ class _SchwammerlHomePageState extends State<SchwammerlHomePage> {
             firebaseData.add(store);
             store['id'] = documentSnapshot.id;
           }).toList();
+          return Scaffold(
+            body: Container(
+              padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Color.fromRGBO(248, 205, 209, 1),
+                    Color.fromRGBO(45, 46, 55, 1),
+                  ],
+                  stops: [0.0, 1.0],
+                  tileMode: TileMode.clamp,
+                ),
+              ),
+              child: ListView.builder(
+                itemCount: firebaseData.length,
+                itemBuilder: (context, index) {
+                  return ExpansionPanelList(
+                    expandedHeaderPadding: EdgeInsets.zero,
+                    expansionCallback: (panelIndex, isExpanded) {
+                      setState(() {
+                        _isExpanded[index] = !_isExpanded[index];
+                      });
+                    },
+                    children: [
+                      ExpansionPanel(
+                        backgroundColor: Colors.transparent,
+                        isExpanded: _isExpanded[index],
+                        canTapOnHeader: true,
+                        headerBuilder: (context, isExpanded) {
+                          return Container(
+                            child: ListTile(
+                              title: Text(
+                                firebaseData[index]['name'],
+                                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                              ),
+                              subtitle: Text(
+                                firebaseData[index]['info'],
+                                style: const TextStyle(fontSize: 16),
+                              ),
+                              trailing: Container(
+                                width: 100,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    Flexible(
+                                      child: IconButton(
+                                        onPressed: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => SchwammerlEditPage(
+                                                docID: firebaseData[index]['id'],
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                        icon: const Icon(
+                                          Icons.edit,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                    ),
+                                    Flexible(
+                                      child: IconButton(
+                                        onPressed: () {
+                                          _deleteSchwammerl(firebaseData[index]['id']);
+                                        },
+                                        icon: const Icon(
+                                          Icons.delete,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                        body: Padding(
+                          padding: const EdgeInsets.fromLTRB(8,0,8,16),
+                          child: firebaseData[index]['image'] == "" ? CircleAvatar(
+                            radius: 100,
+                            backgroundImage: AssetImage('assets/images/mushroom.png'),
+                            ) : GestureDetector(
+                            onTap: () {
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return Dialog(
+                                    child: Container(
+                                      width: 300,
+                                      height: 300,
+                                      decoration: BoxDecoration(
+                                        image: DecorationImage(
+                                          image: NetworkImage(firebaseData[index]['image']),
+                                          fit: BoxFit.cover,
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              );
+                            },
+                            child: CircleAvatar(
+                              radius: 100,
+                              backgroundImage: NetworkImage(firebaseData[index]['image']),
+                            ),
+                          ),
+                          ),
+                        ),
+                    ],
+                  );
+                },
+              ),
+            ),
+            floatingActionButton: FloatingActionButton(
+              backgroundColor: mainColor,
+              foregroundColor: secondaryColor,
+              onPressed: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const SchwammerlAddPage(),
+                    ));
+              },
+              child: const Icon(Icons.add, size: 40,),
+            ),
+          );
+          /*
           return Scaffold(
             appBar: AppBar(
               title: _title(),
@@ -213,7 +352,7 @@ class _SchwammerlHomePageState extends State<SchwammerlHomePage> {
               ),
             ),
           ),
-        );
+        );*/
       });
   }
 }

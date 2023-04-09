@@ -34,20 +34,18 @@ class _SchwammerlInfoPageState extends State<SchwammerlInfoPage> {
   FirebaseFirestore.instance.collection('schwammerl').snapshots();
 
   List<String> autoCompleteDataInfo = [""];
+  List<bool> _isExpanded = List.generate(110, (_) => false);
 
   final ref = FirebaseStorage.instance.ref().child('fliegenpilz');
   var url = "";
   TextEditingController nameController = TextEditingController();
 
   final mainColor = const Color(0xFFf8cdd1);
+  final secondaryColor = const Color(0xFF2D2E37);
 
   displayImage() async {
     url = await ref.getDownloadURL();
     print(url);
-  }
-
-  Widget _title() {
-    return const Text('Schwammerl Info');
   }
 
   @override
@@ -84,116 +82,119 @@ class _SchwammerlInfoPageState extends State<SchwammerlInfoPage> {
           }
           if (nameController.text.isNotEmpty) {
             int index = firebaseData.indexWhere((element) => element['name'] == nameController.text);
-
             if (index != -1) {
               Map<String, dynamic> element = firebaseData.removeAt(index);
               firebaseData.insert(0, element);
             }
           }
           return Scaffold(
-            appBar: CustomAppBar(),
             body: Container(
               padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
               decoration: BoxDecoration(
-                image: DecorationImage(
-                  image: AssetImage("assets/images/background.png"),
-                  fit: BoxFit.cover
-                )
-              ),
-              child: SingleChildScrollView(
-                child: Table(
-                  border: TableBorder(
-                    //top: BorderSide(color: Colors.white, width: 3.0),
-                    //bottom: BorderSide(color: Colors.white, width: 3.0),
-                    //left: BorderSide(color: Colors.white, width: 3.0),
-                    //right: BorderSide(color: Colors.white, width: 3.0),
-                    horizontalInside: BorderSide(color: Colors.white, width: 3.0),
-                    //verticalInside: BorderSide(color: Colors.white, width: 3.0),
-                  ),
-                  columnWidths: const <int, TableColumnWidth>{
-                    1: FixedColumnWidth(150),
-                  },
-                  defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-                  children: <TableRow>[
-                    TableRow(
-                      children: [
-                        TableCell(
-                          child: Container(
-                            color: mainColor,
-                            child: Center(
-                              child: Text(
-                                'Name',
-                                style: txt,
-                              ),
-                            ),
-                          ),
-                        ),
-                        TableCell(
-                          child: Container(
-                            color: mainColor,
-                            child: Center(
-                              child: Text(
-                                'Info',
-                                style: txt,
-                              ),
-                            ),
-                          ),
-                        ),
-                        TableCell(
-                          child: Container(
-                            color: mainColor,
-                            child: Center(
-                              child: Text(
-                                'Bild',
-                                style: txt,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    for (var i = 0; i < firebaseData.length; i++) ...[
-                      TableRow(
-                        children: [
-                          TableCell(
-                            child: SizedBox(
-                              child: Center(
-                                child: Text(
-                                  firebaseData[i]['name'],
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(color: Colors.white, ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          TableCell(
-                            child: SizedBox(
-                              child: Center(
-                                child: Text(
-                                  firebaseData[i]['latName'],
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                              ),
-                            ),
-                          ),
-                          TableCell(
-                            child: SizedBox(
-                              child: Column(
-                                children: [
-                                  if(firebaseData[i]['image'] == "")
-                                    const Text(''),
-                                  if(firebaseData[i]['image'] != "")
-                                    firebaseData[i].containsKey('image') ? Image.network(
-                                        '${firebaseData[i]['image']}') : Container(),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Color.fromRGBO(248, 205, 209, 1),
+                    Color.fromRGBO(45, 46, 55, 1),
                   ],
+                  stops: [0.0, 1.0],
+                  tileMode: TileMode.clamp,
+                ),
+              ),
+              child: SafeArea(
+                child: ListView.builder(
+                  itemCount: firebaseData.length,
+                  itemBuilder: (context, index) {
+                    return ExpansionPanelList(
+                      expandedHeaderPadding: EdgeInsets.zero,
+                      expansionCallback: (panelIndex, isExpanded) {
+                        setState(() {
+                          _isExpanded[index] = !_isExpanded[index];
+                        });
+                      },
+                      children: [
+                         ExpansionPanel(
+                           backgroundColor: Colors.transparent,
+                          isExpanded: _isExpanded[index],
+                          canTapOnHeader: true,
+                          headerBuilder: (context, isExpanded) {
+                             return Container(
+                              child: ListTile(
+                                title: SubstringHighlight(
+                                  text: firebaseData[index]['name'],
+                                  term: nameController.text,
+                                  textStyle: const TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black
+                                  ),
+                                  textStyleHighlight: const TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.red,
+                                  ),
+                                ),
+                                subtitle: Text(
+                                  firebaseData[index]['verzehrhinweis'],
+                                  style: const TextStyle(fontSize: 16),
+                                ),
+                                trailing: GestureDetector(
+                                  onTap: () {
+                                    showDialog(
+                                      context: context,
+                                      builder: (BuildContext context) {
+                                        return Dialog(
+                                          child: Container(
+                                            width: 200,
+                                            height: 200,
+                                            decoration: BoxDecoration(
+                                              image: DecorationImage(
+                                                image: NetworkImage(firebaseData[index]['image']),
+                                                fit: BoxFit.cover,
+                                              ),
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    );
+                                  },
+                                  child: CircleAvatar(
+                                    radius: 30,
+                                    backgroundImage: NetworkImage(firebaseData[index]['image']),
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                           body: Padding(
+                             padding: const EdgeInsets.fromLTRB(8,0,8,16),
+                             child: Column(
+                               crossAxisAlignment: CrossAxisAlignment.start,
+                               mainAxisAlignment: MainAxisAlignment.start,
+                               children: [
+                                 Row(
+                                   children: [
+                                     const Text(
+                                       'Beschreibung',
+                                       style: TextStyle(
+                                         fontSize: 16,
+                                         fontWeight: FontWeight.bold,
+                                       ),
+                                     ),
+                                   ],
+                                 ),
+                                 Text(
+                                   firebaseData[index]['sammeltipp'],
+                                   style: const TextStyle(fontSize: 16),
+                                 ),
+                               ],
+                             ),
+                           ),
+                         ),
+                      ],
+                    );
+                  },
                 ),
               ),
             ),

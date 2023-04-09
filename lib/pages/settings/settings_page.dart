@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:schwammerlapp/firebase/auth.dart';
+import 'package:schwammerlapp/main/main.dart';
 import 'package:schwammerlapp/pages/loginRegister/login_register_page.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -19,6 +20,9 @@ class _SettingsPageState extends State<SettingsPage> {
 
   final _formkey = GlobalKey<FormState>();
 
+  final mainColor = const Color(0xFFf8cdd1);
+  final secondaryColor = const Color(0xFF2D2E37);
+
   String? errorMessage = '';
 
   String email = '';
@@ -32,6 +36,7 @@ class _SettingsPageState extends State<SettingsPage> {
   bool isLogin = false;
   bool _passwordVisible = false;
   bool _passwordVisibleDialog = false;
+
   bool emailTaken = false;
   bool canDelete = true;
   int _secondsLeft = 5;
@@ -144,53 +149,71 @@ class _SettingsPageState extends State<SettingsPage> {
                         children: <Widget>[
                           SingleChildScrollView(
                             child: AlertDialog(
+                              backgroundColor: mainColor,
                               content: Stack(
                                 children: <Widget>[
                                   Container(
-                                    height: 340,
+                                    height: 265,
                                     width: 340,
                                     child: ListView(
                                       children: [
-                                        const Text("Bitte melden Sie sich erneut an"),
+                                        const Text("Bitte melden Sie sich erneut an", style: TextStyle(
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16.0,
+                                        ),),
                                         SizedBox(height: 20),
                                         TextFormField(
                                           controller: _controllerEmailDialog,
-                                          decoration: const InputDecoration(
-                                            labelText: 'E-Mail',
-                                            labelStyle: TextStyle(fontSize: 18),
-                                            errorStyle: TextStyle(color: Colors.orange, fontSize: 15),
-                                            border: OutlineInputBorder(
-                                            borderRadius: BorderRadius.all(Radius.circular(10)),
-                                            ),
-                                          ),
+                                          decoration: InputDecoration(
+                                              hintText: 'E-Mail',
+                                              hintStyle: TextStyle(color: Colors.black),
+                                              prefixIcon: Icon(Icons.person, color: Colors.black),
+                                              border: InputBorder.none,
+                                              disabledBorder: OutlineInputBorder(
+                                                  borderSide: BorderSide(color: Colors.black, width: 3),
+                                                  borderRadius: BorderRadius.circular(30).copyWith(
+                                                      topRight: Radius.circular(0),
+                                                      bottomLeft: Radius.circular(0))),
+                                              contentPadding: EdgeInsets.all(26),
+                                              enabledBorder: OutlineInputBorder(
+                                                  borderSide: BorderSide(color: Colors.black, width: 3),
+                                                  borderRadius: BorderRadius.circular(30).copyWith(
+                                                      topRight: Radius.circular(0),
+                                                      bottomLeft: Radius.circular(0))),
+                                              focusedBorder: OutlineInputBorder(
+                                                  borderSide: BorderSide(color: Colors.black, width: 3),
+                                                  borderRadius: BorderRadius.circular(30).copyWith(
+                                                      topRight: Radius.circular(0),
+                                                      bottomLeft: Radius.circular(0)))),
                                         ),
                                         SizedBox(height: 20),
                                         TextFormField(
                                           controller: _controllerPasswordDialog,
                                           obscureText: !_passwordVisibleDialog,
                                           decoration: InputDecoration(
-                                            labelText: 'Passwort',
-                                            labelStyle: TextStyle(fontSize: 18),
-                                            errorStyle: TextStyle(color: Colors.orange, fontSize: 15),
-                                            border: OutlineInputBorder(
-                                              borderRadius: BorderRadius.all(Radius.circular(10)),
-                                            ),
-                                            suffixIcon: IconButton(
-                                              icon: Icon(
-                                                _passwordVisibleDialog ? Icons.visibility : Icons.visibility_off,
-                                                color: Colors.black,
-                                              ),
-                                              onPressed: () {
-                                                setState(() {
-                                                  _passwordVisibleDialog = !_passwordVisibleDialog;
-                                                });
-                                              },
-                                            ),
-                                          ),
+                                              hintText: 'Passwort',
+                                              hintStyle: TextStyle(color: Colors.black),
+                                              prefixIcon: Icon(Icons.lock, color: Colors.black),
+                                              border: InputBorder.none,
+                                              disabledBorder: OutlineInputBorder(
+                                                  borderSide: BorderSide(color: Colors.black, width: 3),
+                                                  borderRadius: BorderRadius.circular(30).copyWith(
+                                                      topRight: Radius.circular(0),
+                                                      bottomLeft: Radius.circular(0))),
+                                              contentPadding: EdgeInsets.all(26),
+                                              enabledBorder: OutlineInputBorder(
+                                                  borderSide: BorderSide(color: Colors.black, width: 3),
+                                                  borderRadius: BorderRadius.circular(30).copyWith(
+                                                      topRight: Radius.circular(0),
+                                                      bottomLeft: Radius.circular(0))),
+                                              focusedBorder: OutlineInputBorder(
+                                                  borderSide: BorderSide(color: Colors.black, width: 3),
+                                                  borderRadius: BorderRadius.circular(30).copyWith(
+                                                      topRight: Radius.circular(0),
+                                                      bottomLeft: Radius.circular(0)))),
                                         ),
-                                        SizedBox(height: 10),
-                                        Text(errorMessage == '' ? '' : 'Something went wrong $errorMessage'),
-                                        SizedBox(height: 10),
+                                        SizedBox(height: 20),
                                         ElevatedButton(
                                           onPressed: () async {
                                             try {
@@ -207,24 +230,16 @@ class _SettingsPageState extends State<SettingsPage> {
                                             }
                                           },
                                           style: ElevatedButton.styleFrom(
-                                            backgroundColor: Colors.orange,),
-                                          child: const Text('Login'),
-                                        ),
-                                        SizedBox(height: 10),
-                                        /*GestureDetector(
-                                          child: const Center(
-                                           child: Text(
-                                            'Passwort vergessen?',
-                                            style: TextStyle(
-                                              decoration: TextDecoration.underline,
-                                              color: Colors.orange,
-                                              fontSize: 16,
+                                            backgroundColor: mainColor,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(15),
+                                              side: BorderSide(color: Colors.black,
+                                              width: 3), // add this line
                                             ),
-                                          ),),
-                                          onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                                            builder: (context) => const ForgotPasswordPage(),
-                                          )),
-                                        ),*/
+                                          ),
+                                          child: const Text('Login',
+                                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18.0),),
+                                        ),
                                       ],
                                     ),
                                   ),
@@ -372,149 +387,213 @@ class _SettingsPageState extends State<SettingsPage> {
         getDataCounter = getDataCounter-1;
       }
         return Scaffold(
+          resizeToAvoidBottomInset: false,
           appBar: AppBar(
             title: const Text('Einstellungen'),
-            backgroundColor: Colors.orange,
-            actions: [
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: ElevatedButton(
-                  onPressed: () {
-                    signOut();
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const LoginPage(),
-                        ));
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor:Colors.orangeAccent,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                  ),
-                  child: const Text('Abmelden'),
-                ),
-              ),
-            ],
           ),
-          body: Form(
-            key: _formkey,
-            child: ListView(
-              children: [
-                Container(
-                  margin: const EdgeInsets.symmetric(
-                    vertical: 18,
-                    horizontal: 15,
-                  ),
-                  child: Stack(
-                    alignment: Alignment.centerRight,
-                    children: [
-                      TextFormField(
-                        enabled: isLogin,
-                        initialValue: email,
-                        onChanged: (value) {
-                          email = value;
-                        },
-                        decoration: const InputDecoration(
-                          labelText: 'E-Mail',
-                          labelStyle: TextStyle(fontSize: 18),
-                          errorStyle: TextStyle(color: Colors.orange, fontSize: 15),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(10)),
-                          ),
-                        ),
-                      ),
-                      isLogin ? Container() : IconButton(
-                        icon: Icon(Icons.edit),
-                        onPressed: () {
-                          WidgetsBinding.instance.addPostFrameCallback(_showDialogLogin);
-                        },
-                      )
-                    ],
-                  ),
-                ),
-                Container(
-                  margin: const EdgeInsets.symmetric(
-                    vertical: 18,
-                    horizontal: 15,
-                  ),
-                  child: Stack(
-                    alignment: Alignment.centerRight,
-                    children: [
-                      TextFormField(
-                        enabled: isLogin,
-                        initialValue: password,
-                        obscureText: !_passwordVisible,
-                        onChanged: (value) {
-                          password = value;
-                        },
-                        decoration: InputDecoration(
-                          labelText: 'Passwort',
-                          labelStyle: TextStyle(fontSize: 18),
-                          errorStyle: TextStyle(color: Colors.orange, fontSize: 15),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(10)),
-                          ),
-                        ),
-                      ),
-                      IconButton(
-                        icon: Icon(isLogin ? _passwordVisible ? Icons.visibility : Icons.visibility_off : Icons.edit,
-                        ),
-                        onPressed: () {
-                          if(isLogin == true)
-                          {
-                            setState(() {
-                              _passwordVisible = !_passwordVisible;
-                            });
-                          }
-                          else if(isLogin == false)
-                          {
-                            WidgetsBinding.instance.addPostFrameCallback(_showDialogLogin);
-                          }
-                        },
-                      )
-                    ],
-                  ),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center ,
-                  crossAxisAlignment: CrossAxisAlignment.center,
+          body: Container(
+            width: MediaQuery.of(context).size.width,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Color.fromRGBO(248, 205, 209, 1),
+                  Color.fromRGBO(45, 46, 55, 1),
+                ],
+                stops: [0.0, 1.0],
+                tileMode: TileMode.clamp,
+              ),
+            ),
+            child: SafeArea(
+              child: Form(
+                key: _formkey,
+                child: ListView(
                   children: [
-                    SizedBox(
-                      width: 200,
-                      height: 40,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          if(isLogin == false)
-                          {
-                            WidgetsBinding.instance.addPostFrameCallback(_showDialogLogin);
-                          }
-                          if(isLogin == true)
-                          {
-                            WidgetsBinding.instance.addPostFrameCallback(_showDialogDeleteUser);
-                          };
-                        },
-                        style: ButtonStyle(
-                          backgroundColor: MaterialStateProperty.all(Colors.red),
-                          shape: MaterialStateProperty.all(RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10.0)
-                          )),
-                          elevation: MaterialStateProperty.all(4.0),
+                    Column(
+                    children: [
+                      Container(
+                        margin: const EdgeInsets.symmetric(
+                          vertical: 18,
+                          horizontal: 15,
                         ),
-                        child: Text(
-                          'Delete User',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18.0,
-                          ),
+                        child: Stack(
+                          alignment: Alignment.centerRight,
+                          children: [
+                            TextFormField(
+                              enabled: isLogin,
+                              initialValue: email,
+                              onChanged: (value) {
+                                email = value;
+                              },
+                              style: TextStyle(color: Colors.black),
+                              decoration: InputDecoration(
+                                  hintText: 'E-Mail',
+                                  hintStyle: TextStyle(color: Colors.black),
+                                  prefixIcon: Icon(Icons.person, color: Colors.black),
+                                  border: InputBorder.none,
+                                  disabledBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(color: Colors.black, width: 3),
+                                      borderRadius: BorderRadius.circular(30).copyWith(
+                                          topRight: Radius.circular(0),
+                                          bottomLeft: Radius.circular(0))),
+                                  contentPadding: EdgeInsets.all(26),
+                                  enabledBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(color: Colors.black, width: 3),
+                                      borderRadius: BorderRadius.circular(30).copyWith(
+                                          topRight: Radius.circular(0),
+                                          bottomLeft: Radius.circular(0))),
+                                  focusedBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(color: Colors.black, width: 3),
+                                      borderRadius: BorderRadius.circular(30).copyWith(
+                                          topRight: Radius.circular(0),
+                                          bottomLeft: Radius.circular(0)))),
+                            ),
+                            isLogin ? Container() : IconButton(
+                              icon: Icon(Icons.edit),
+                              onPressed: () {
+                                WidgetsBinding.instance.addPostFrameCallback(_showDialogLogin);
+                              },
+                            )
+                          ],
                         ),
                       ),
-                    )
+                      Container(
+                        margin: const EdgeInsets.symmetric(
+                          vertical: 18,
+                          horizontal: 15,
+                        ),
+                        child: Stack(
+                          alignment: Alignment.centerRight,
+                          children: [
+                            TextFormField(
+                              enabled: isLogin,
+                              initialValue: password,
+                              obscureText: !_passwordVisible,
+                              onChanged: (value) {
+                                password = value;
+                              },
+                          style: TextStyle(color: Colors.black),
+                          decoration: InputDecoration(
+                              hintText: 'Passwort',
+                              hintStyle: TextStyle(color: Colors.black),
+                              prefixIcon: Icon(Icons.lock, color: Colors.black),
+                              border: InputBorder.none,
+                              disabledBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(color: Colors.black, width: 3),
+                                  borderRadius: BorderRadius.circular(30).copyWith(
+                                      topRight: Radius.circular(0),
+                                      bottomLeft: Radius.circular(0))),
+                              contentPadding: EdgeInsets.all(26),
+                              enabledBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(color: Colors.black, width: 3),
+                                  borderRadius: BorderRadius.circular(30).copyWith(
+                                      topRight: Radius.circular(0),
+                                      bottomLeft: Radius.circular(0))),
+                              focusedBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(color: Colors.black, width: 3),
+                                  borderRadius: BorderRadius.circular(30).copyWith(
+                                      topRight: Radius.circular(0),
+                                      bottomLeft: Radius.circular(0)))),
+                            ),
+                            IconButton(
+                              icon: Icon(isLogin ? _passwordVisible ? Icons.visibility : Icons.visibility_off : Icons.edit,
+                              ),
+                              onPressed: () {
+                                if(isLogin == true)
+                                {
+                                  setState(() {
+                                    _passwordVisible = !_passwordVisible;
+                                  });
+                                }
+                                else if(isLogin == false)
+                                {
+                                  WidgetsBinding.instance.addPostFrameCallback(_showDialogLogin);
+                                }
+                              },
+                            )
+                          ],
+                        ),
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center ,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          SizedBox(
+                            width: 200,
+                            height: 40,
+                            child: ElevatedButton(
+                              onPressed: () {
+                                if(isLogin == false)
+                                {
+                                  WidgetsBinding.instance.addPostFrameCallback(_showDialogLogin);
+                                }
+                                if(isLogin == true)
+                                {
+                                  WidgetsBinding.instance.addPostFrameCallback(_showDialogDeleteUser);
+                                };
+                              },
+                              style: ButtonStyle(
+                                backgroundColor: MaterialStateProperty.all(Colors.red),
+                                shape: MaterialStateProperty.all(RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10.0)
+                                )),
+                                elevation: MaterialStateProperty.all(4.0),
+                              ),
+                              child: Text(
+                                'Benutzer Löschen',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18.0,
+                                ),
+                              ),
+                            ),
+                          )
+                        ],
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(0, 370, 0, 0),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Row(
+                                mainAxisAlignment: MainAxisAlignment.center ,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  SizedBox(
+                                    width: 200,
+                                    height: 40,
+                                    child: ElevatedButton(
+                                      onPressed: () {
+                                        signOut();
+                                        Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => const LoginPage(),
+                                            ));
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: mainColor,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(15),
+                                        ),
+                                      ),
+                                      child: const Text('Abmelden',
+                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18.0),),
+                                    ),
+                                  ),
+                                ]
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                   ],
                 ),
-              ],
+              ),
             ),
           ),
         );

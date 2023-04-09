@@ -119,7 +119,6 @@ class _RouteAddPageState extends State<RouteAddPage> {
       startDate = dateRangePickerSelectionChangedArgs.value.startDate!;
       endDate = dateRangePickerSelectionChangedArgs.value.endDate!;
       selectCounter = 1;
-
       startDateString = '${startDate!.day}.${_twoDigitString(startDate!.month)}.${_twoDigitString(startDate!.year)}';
       endDateString = '${endDate!.day}.${_twoDigitString(endDate!.month)}.${_twoDigitString(endDate!.year)}';
 
@@ -180,7 +179,6 @@ class _RouteAddPageState extends State<RouteAddPage> {
                 String pickedDate = firebaseDataSchwammerlDate[i]['date'].toString();
                 String id = firebaseDataSchwammerlDate[i]['id'].toString();
                 dateTime = DateTime.parse(pickedDate);
-
                 if (dateTime!.isAfter(startDate!) && dateTime!.isBefore(endDate!)) {
                   _updateSchwammerlSelectedTrue(id);
                 }

@@ -21,7 +21,7 @@ class _NavBarPageState extends State<NavBarPage> {
   late Widget? _currentPage;
   var currentUser = FirebaseAuth.instance.currentUser?.uid;
   int currentIndex = 0;
-  static const navBarColor = const Color(0xFF2F2628);
+  static const navBarColor = const Color(0xFF2d2e37);
   static const iconColor = const Color(0xFFf8cdd1);
 
   @override
@@ -68,11 +68,11 @@ class _NavBarPageState extends State<NavBarPage> {
           BottomNavigationBarItem(
             icon: Icon(
               Icons.food_bank_outlined,
-              size: 28,
+              size: 32,
             ),
             activeIcon: Icon(
               Icons.food_bank,
-              size: 28
+              size: 32
             ),
             label: 'Schwammerl',
             tooltip: 'Schwammerl',

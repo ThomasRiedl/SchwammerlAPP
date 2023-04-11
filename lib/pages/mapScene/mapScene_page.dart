@@ -10,13 +10,8 @@ import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:rxdart/rxdart.dart';
-import 'package:schwammerlapp/pages/route/route_add.dart';
-import 'package:schwammerlapp/pages/schwammerl/schwammerl_add.dart';
-import 'package:schwammerlapp/pages/schwammerl/schwammerl_home.dart';
 import 'package:substring_highlight/substring_highlight.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
-import 'package:rxdart/streams.dart';
 
 class MapScenePage extends  StatefulWidget {
   @override
@@ -265,6 +260,11 @@ class _MapScenePageState extends State<MapScenePage> with AutomaticKeepAliveClie
       setState(() {
         selectedDate = '$startDateString - $endDateString';
       });
+      var snackBarDate = SnackBar(
+        content: Text('Zeitraum $selectedDate ausgewählt'),
+      );
+      ScaffoldMessenger.of(context).removeCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(snackBarDate);
     }
   }
 
@@ -294,6 +294,7 @@ class _MapScenePageState extends State<MapScenePage> with AutomaticKeepAliveClie
             Padding(
               padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
               child: SfDateRangePicker(
+                rangeSelectionColor: mainColor,
                 view: DateRangePickerView.month,
                 selectionMode: DateRangePickerSelectionMode.range,
                 onSelectionChanged: _onSelectionChanged,
@@ -340,23 +341,6 @@ class _MapScenePageState extends State<MapScenePage> with AutomaticKeepAliveClie
         });
       }}
     );
-  }
-
-  Future<void> _updateSchwammerlSelected(id) {
-    isSelectedSchwammerl = false;
-    return schwammerlCollection
-        .doc(id)
-        .update({'isSelected' : isSelectedSchwammerl,})
-        .then((value) => print("Schwammerl Updated"))
-        .catchError((error) => print("Failed to update selected Schwammerl: $error"));
-  }
-
-  Future<void> _updateSchwammerl(id) {
-    return schwammerlCollection
-        .doc(id)
-        .update({'isSelectedSchwammerl' : isSelectedSchwammerl, 'isSelected' : isSelectedSchwammerl})
-        .then((value) => print("Schwammerl Updated"))
-        .catchError((error) => print("Failed to update selected Schwammerl: $error"));
   }
 
   @override
@@ -432,6 +416,7 @@ class _MapScenePageState extends State<MapScenePage> with AutomaticKeepAliveClie
                         optionsViewBuilder:
                             (context, Function(String) onSelected, options) {
                           return Material(
+                            color: Color.fromRGBO(231, 195, 198, 1.0),
                             elevation: 4,
                             child: ListView.separated(
                               padding: EdgeInsets.zero,

@@ -31,10 +31,6 @@ class _RouteHomePageState extends State<RouteHomePage> {
         .catchError((_) => print('Something Error In Deleted Toute'));
   }
 
-  Widget _title() {
-    return const Text('Routen');
-  }
-
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
@@ -56,6 +52,8 @@ class _RouteHomePageState extends State<RouteHomePage> {
           }).toList();
           return Scaffold(
             body: Container(
+              width: MediaQuery.of(context).size.width,
+              height: MediaQuery.of(context).size.height,
               padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
@@ -117,7 +115,80 @@ class _RouteHomePageState extends State<RouteHomePage> {
                                     Flexible(
                                       child: IconButton(
                                         onPressed: () {
-                                          _deleteRoute(firebaseData[index]['id']);
+                                          showDialog(
+                                            context: context,
+                                            builder: (BuildContext context) {
+                                              return AlertDialog(
+                                                backgroundColor: mainColor,
+                                                title: Text('Route ' +firebaseData[index]['name']+ ' löschen?',
+                                                  style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                                content: Text('Sind Sie sich sicher, dass Sie diese Route löschen möchten?',
+                                                ),
+                                                actions: <Widget>[
+                                                  Container(
+                                                    padding: EdgeInsets.fromLTRB(16,0,16,0),
+                                                    child: Row(
+                                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                      children: <Widget>[
+                                                        ElevatedButton(
+                                                          onPressed: () {
+                                                            Navigator.of(context).pop();
+                                                          },
+                                                          style: ElevatedButton.styleFrom(
+                                                            backgroundColor: mainColor,
+                                                            shape: RoundedRectangleBorder(
+                                                              borderRadius: BorderRadius.circular(10),
+                                                              side: BorderSide(color: Colors.black,
+                                                                  width: 3), // add this line
+                                                            ),
+                                                          ),
+                                                          child: Text(
+                                                            'Abrechen',
+                                                            style: TextStyle(
+                                                              color: Colors.black,
+                                                              fontWeight: FontWeight.bold,
+                                                              fontSize: 18.0,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                        ElevatedButton(
+                                                          onPressed: () {
+                                                            _deleteRoute(firebaseData[index]['id']);
+                                                            Navigator.of(context).pop();
+                                                            var snackBarEmpty = SnackBar(
+                                                              content: Text('Die Route wurde erfolgreich gelöscht'),
+                                                            );
+                                                            ScaffoldMessenger.of(context).removeCurrentSnackBar();
+                                                            ScaffoldMessenger.of(context).showSnackBar(snackBarEmpty);
+                                                            Navigator.of(context).pop();
+                                                          },
+                                                          style: ElevatedButton.styleFrom(
+                                                            backgroundColor: mainColor,
+                                                            shape: RoundedRectangleBorder(
+                                                              borderRadius: BorderRadius.circular(10),
+                                                              side: BorderSide(color: Colors.black,
+                                                                  width: 3), // add this line
+                                                            ),
+                                                          ),
+                                                          child: Text(
+                                                            'Löschen',
+                                                            style: TextStyle(
+                                                              color: Colors.black,
+                                                              fontWeight: FontWeight.bold,
+                                                              fontSize: 18.0,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ],
+                                              );
+                                            },
+                                          );
                                         },
                                         icon: const Icon(
                                           Icons.delete,
@@ -182,148 +253,6 @@ class _RouteHomePageState extends State<RouteHomePage> {
               child: const Icon(Icons.add, size: 40,),
             ),
           );
-          /*
-          return Scaffold(
-            appBar: AppBar(
-              title: _title(),
-              actions: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const RouteAddPage(),
-                          ));
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor:Colors.orangeAccent,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                    ),
-                    child: const Text('Route hinzufügen'),
-                  ),
-                ),
-              ],
-            ),
-            body: Container(
-              padding: const EdgeInsets.all(20),
-              margin: const EdgeInsets.all(8),
-              child: SingleChildScrollView(
-                child: Table(
-                  columnWidths: {
-                    0: FixedColumnWidth(110),
-                    1: FixedColumnWidth(160),
-                    2: FixedColumnWidth(70),
-                  },
-                  border: TableBorder.all(),
-                  defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-                  children: <TableRow>[
-                    TableRow(
-                      children: [
-                        TableCell(
-                          child: Container(
-                            color: Colors.orange,
-                            child: Center(
-                              child: Text(
-                                'Name',
-                                style: txt,
-                              ),
-                            ),
-                          ),
-                        ),
-                        TableCell(
-                          child: Container(
-                            color: Colors.orange,
-                            child: Center(
-                              child: Text(
-                                'Schwammerl',
-                                style: txt,
-                              ),
-                            ),
-                          ),
-                        ),
-                        TableCell(
-                          child: Container(
-                            color: Colors.orange,
-                            child: Center(
-                              child: Text(
-                                '',
-                                style: txt,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    for (var i = 0; i < firebaseData.length; i++) ...[
-                      TableRow(
-                        children: [
-                          TableCell(
-                            child: SizedBox(
-                              child: Center(
-                                child: Text(
-                                  firebaseData[i]['name'],
-                                  style: txt2,
-                                ),
-                              ),
-                            ),
-                          ),
-                          TableCell(
-                            child: SizedBox(
-                              child: Center(
-                                child: Text(
-                                  firebaseData[i]['schwammerlNames'].toString(),
-                                  style: txt2,
-                                ),
-                              ),
-                            ),
-                          ),
-                          TableCell(
-                            child: Row(
-                              children: [
-                                Flexible(
-                                  child: IconButton(
-                                    onPressed: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => RouteEditPage(
-                                            docID: firebaseData[i]['id'],
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                    icon: const Icon(
-                                      Icons.edit,
-                                      color: Colors.black,
-                                    ),
-                                  ),
-                                ),
-                                Flexible(
-                                  child: IconButton(
-                                    onPressed: () {
-                                      _deleteRoute(firebaseData[i]['id']);
-                                    },
-                                    icon: const Icon(
-                                      Icons.delete,
-                                      color: Colors.black,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ], //this is loop
-                  ],
-                ),
-              ),
-            ),
-          );*/
         });
   }
 }

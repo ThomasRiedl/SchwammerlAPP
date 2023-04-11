@@ -56,6 +56,10 @@ class _RouteAddPageState extends State<RouteAddPage> {
   late DateTime? startDate;
   late DateTime? endDate;
   late DateTime? dateTime;
+
+  final mainColor = const Color(0xFFf8cdd1);
+  final secondaryColor = const Color(0xFF2D2E37);
+
   @override
   void initState() {
   }
@@ -77,15 +81,6 @@ class _RouteAddPageState extends State<RouteAddPage> {
     isSelectedSchwammerl = true;
     return schwammerlCollection
         .doc(id)
-        .update({'isSelected' : isSelectedSchwammerl,})
-        .then((value) => print("Schwammerl Updated"))
-        .catchError((error) => print("Failed to update selected Schwammerl: $error"));
-  }
-
-  Future<void> _updateSchwammerlSelectedTrueAll() {
-    isSelectedSchwammerl = true;
-    return schwammerlCollection
-        .doc()
         .update({'isSelected' : isSelectedSchwammerl,})
         .then((value) => print("Schwammerl Updated"))
         .catchError((error) => print("Failed to update selected Schwammerl: $error"));
@@ -125,6 +120,11 @@ class _RouteAddPageState extends State<RouteAddPage> {
       setState(() {
         selectedDate = '$startDateString - $endDateString';
       });
+      var snackBarDate = SnackBar(
+        content: Text('Zeitraum $selectedDate ausgewählt'),
+      );
+      ScaffoldMessenger.of(context).removeCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(snackBarDate);
     }
   }
 
@@ -151,6 +151,7 @@ class _RouteAddPageState extends State<RouteAddPage> {
               padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
               child: SfDateRangePicker(
                 view: DateRangePickerView.month,
+                rangeSelectionColor: mainColor,
                 selectionMode: DateRangePickerSelectionMode.range,
                 onSelectionChanged: _onSelectionChanged,
               ),
@@ -235,15 +236,31 @@ class _RouteAddPageState extends State<RouteAddPage> {
           }
           return Scaffold(
             key: _scaffoldKey,
+            resizeToAvoidBottomInset: true,
             appBar: AppBar(
               title: const Text('Schwammerlplätze'),
             ),
-            body: SafeArea(
-              child: Stack(
-                children: [
-                SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
+            body: Container(
+              width: MediaQuery.of(context).size.width,
+              height: MediaQuery.of(context).size.height,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Color.fromRGBO(248, 205, 209, 1),
+                    Color.fromRGBO(45, 46, 55, 1),
+                  ],
+                  stops: [0.0, 1.0],
+                  tileMode: TileMode.clamp,
+                ),
+              ),
+              child: SafeArea(
+                child: SingleChildScrollView(
+                  child: Stack(
+                    children: [
+                    Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
                     child: Column(
                       children: [
                         Row(
@@ -262,6 +279,7 @@ class _RouteAddPageState extends State<RouteAddPage> {
                                 optionsViewBuilder:
                                     (context, Function(String) onSelected, options) {
                                   return Material(
+                                    color: Color.fromRGBO(231, 195, 198, 1.0),
                                     elevation: 4,
                                     child: ListView.separated(
                                       padding: EdgeInsets.zero,
@@ -296,20 +314,26 @@ class _RouteAddPageState extends State<RouteAddPage> {
                                     focusNode: focusNode,
                                     onEditingComplete: onEditingComplete,
                                     decoration: InputDecoration(
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(8),
-                                        borderSide: BorderSide(color: Colors.grey[300]!),
-                                      ),
-                                      focusedBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(8),
-                                        borderSide: BorderSide(color: Colors.grey[300]!),
-                                      ),
-                                      enabledBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(8),
-                                        borderSide: BorderSide(color: Colors.grey[300]!),
-                                      ),
-                                      hintText: "Name des Schwammerls",
-                                    ),
+                                        hintText: 'Name des Schwammerl',
+                                        hintStyle: TextStyle(color: Colors.black),
+                                        prefixIcon: Icon(Icons.person, color: Colors.black),
+                                        border: InputBorder.none,
+                                        disabledBorder: OutlineInputBorder(
+                                            borderSide: BorderSide(color: Colors.black, width: 3),
+                                            borderRadius: BorderRadius.circular(30).copyWith(
+                                                topRight: Radius.circular(0),
+                                                bottomLeft: Radius.circular(0))),
+                                        contentPadding: EdgeInsets.all(20),
+                                        enabledBorder: OutlineInputBorder(
+                                            borderSide: BorderSide(color: Colors.black, width: 3),
+                                            borderRadius: BorderRadius.circular(30).copyWith(
+                                                topRight: Radius.circular(0),
+                                                bottomLeft: Radius.circular(0))),
+                                        focusedBorder: OutlineInputBorder(
+                                            borderSide: BorderSide(color: Colors.black, width: 3),
+                                            borderRadius: BorderRadius.circular(30).copyWith(
+                                                topRight: Radius.circular(0),
+                                                bottomLeft: Radius.circular(0)))),
                                   );
                                 },
                               ),
@@ -330,7 +354,7 @@ class _RouteAddPageState extends State<RouteAddPage> {
                           ],
                         ),
                         Padding(
-                          padding: const EdgeInsets.fromLTRB(8, 0, 8, 0),
+                          padding: const EdgeInsets.fromLTRB(8, 4, 8, 0),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
@@ -346,22 +370,10 @@ class _RouteAddPageState extends State<RouteAddPage> {
                                     }
                                   }
                                 },
-                                style: ButtonStyle(
-                                  backgroundColor: MaterialStateProperty.all(Colors.orange),
-                                ),
                                 child: const Text('Schwammerl hinzufügen'),
                               ),
                             ],
                           ),
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(8, 0, 8, 0),
-                              child: Text(selectedDate),
-                            ),
-                          ],
                         ),
                         Column(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -369,7 +381,7 @@ class _RouteAddPageState extends State<RouteAddPage> {
                             SingleChildScrollView(
                               child: SizedBox(
                                 width: 400,
-                                height: MediaQuery.of(context).size.height-400,
+                                height: MediaQuery.of(context).size.height-319,
                                 child: ListView(
                               padding: EdgeInsets.zero,
                               shrinkWrap: true,
@@ -382,7 +394,7 @@ class _RouteAddPageState extends State<RouteAddPage> {
                                       width: 100,
                                       height: 70,
                                       decoration: BoxDecoration(
-                                        border: Border.all(color: Colors.orange),
+                                        border: Border.all(color: Colors.black),
                                         borderRadius: BorderRadius.circular(0),
                                       ), //BoxDecoration
                                       child: CheckboxListTile(
@@ -417,121 +429,79 @@ class _RouteAddPageState extends State<RouteAddPage> {
                           ],
                         ),
                         Padding(
-                          padding: const EdgeInsets.fromLTRB(2, 8, 2, 0),
+                          padding: const EdgeInsets.fromLTRB(2, 18, 2, 0),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Container(
-                                width: 220,
+                                width: 210,
                                 height: 100,
-                                child: CustomTextEditFieldNoVal(
+                                child: TextFormField(
                                   controller: routeNameController,
-                                  labelttxt: 'Name der Route',
+                                  style: TextStyle(color: Colors.black),
+                                  decoration: InputDecoration(
+                                      hintText: 'Name der Route',
+                                      hintStyle: TextStyle(color: Colors.black),
+                                      prefixIcon: Icon(Icons.route, color: Colors.black),
+                                      border: InputBorder.none,
+                                      disabledBorder: OutlineInputBorder(
+                                          borderSide: BorderSide(color: Colors.black, width: 3),
+                                          borderRadius: BorderRadius.circular(30).copyWith(
+                                              topRight: Radius.circular(0),
+                                              bottomLeft: Radius.circular(0))),
+                                      contentPadding: EdgeInsets.fromLTRB(16, 20, 0, 20),
+                                      enabledBorder: OutlineInputBorder(
+                                          borderSide: BorderSide(color: Colors.black, width: 3),
+                                          borderRadius: BorderRadius.circular(30).copyWith(
+                                              topRight: Radius.circular(0),
+                                              bottomLeft: Radius.circular(0))),
+                                      focusedBorder: OutlineInputBorder(
+                                          borderSide: BorderSide(color: Colors.black, width: 3),
+                                          borderRadius: BorderRadius.circular(30).copyWith(
+                                              topRight: Radius.circular(0),
+                                              bottomLeft: Radius.circular(0)))),
                                 ),
                               ),
-                              ElevatedButton(
-                                onPressed: () {
-                                  routeName = routeNameController.text.toString();
-                                  if(routeNameController.text == "")
-                                  {
-                                    var snackBarEmpty = SnackBar(
-                                      content: Text('Bitte geben Sie einen Namen für die Route ein'),
-                                    );
-                                    ScaffoldMessenger.of(context).removeCurrentSnackBar();
-                                    ScaffoldMessenger.of(context).showSnackBar(snackBarEmpty);
-                                  }
-                                  else
-                                  {
-                                    _addRoute();
-                                    _addRouteToAll();
-                                    Navigator.pop(context);
-                                  }
-                                },
-                                style: ButtonStyle(
-                                  backgroundColor: MaterialStateProperty.all(Colors.orange),
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(8, 4, 0, 0),
+                                child: ElevatedButton(
+                                  onPressed: () {
+                                    routeName = routeNameController.text.toString();
+                                    if(routeNameController.text == "")
+                                    {
+                                      var snackBarEmpty = SnackBar(
+                                        content: Text('Bitte geben Sie einen Namen für die Route ein'),
+                                      );
+                                      ScaffoldMessenger.of(context).removeCurrentSnackBar();
+                                      ScaffoldMessenger.of(context).showSnackBar(snackBarEmpty);
+                                    }
+                                    else
+                                    {
+                                      _addRoute();
+                                      _addRouteToAll();
+                                      Navigator.pop(context);
+                                    }
+                                  },
+                                  child: const Text('Route speichern'),
                                 ),
-                                child: const Text('Route speichern'),
                               ),
                             ],
                           ),
                         ),
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(2, 8, 2, 0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              ElevatedButton(
-                                onPressed: () {
-                                  loading = true;
-                                  setState(() {
-                                    List firebaseDataSchwammerl = [];
-                                    FirebaseFirestore.instance
-                                        .collection('users')
-                                        .doc(FirebaseAuth.instance.currentUser!.uid.toString())
-                                        .collection('locations')
-                                        .snapshots()
-                                        .listen((QuerySnapshot snapshot) {
-                                      snapshot.docs.forEach((DocumentSnapshot documentSnapshot) {
-                                        Map<String, dynamic>? data = documentSnapshot.data() as Map<String, dynamic>?;
-                                        data!['id'] = documentSnapshot.id;
-                                        firebaseDataSchwammerl.add(data);
-                                      });
-                                      for (int i = 0; i < firebaseDataSchwammerl.length; i++) {
-                                        String id = firebaseDataSchwammerl[i]['id'].toString();
-                                        _updateSchwammerlSelectedFalse(id);
-                                      }
-                                    });
-                                    loading = false;
-                                  });
-                                },
-                                style: ButtonStyle(
-                                  backgroundColor: MaterialStateProperty.all(Colors.orange),
-                                ),
-                                child: const Text('aktuelle Auswahl löschen'),
-                              ),
-                              ElevatedButton(
-                                onPressed: () {
-                                  loading = true;
-                                  setState(() {
-                                    List firebaseDataSchwammerl = [];
-                                    FirebaseFirestore.instance
-                                        .collection('users')
-                                        .doc(FirebaseAuth.instance.currentUser!.uid.toString())
-                                        .collection('locations')
-                                        .snapshots()
-                                        .listen((QuerySnapshot snapshot) {
-                                      snapshot.docs.forEach((DocumentSnapshot documentSnapshot) {
-                                        Map<String, dynamic>? data = documentSnapshot.data() as Map<String, dynamic>?;
-                                        data!['id'] = documentSnapshot.id;
-                                        firebaseDataSchwammerl.add(data);
-                                      });
-                                      for (int i = 0; i < firebaseDataSchwammerl.length; i++) {
-                                        _updateSchwammerlSelectedTrueAll();
-                                      }
-                                    });
-                                    loading = false;
-                                  });
-                                },
-                                style: ButtonStyle(
-                                  backgroundColor: MaterialStateProperty.all(Colors.orange),
-                                ),
-                                child: const Text('alle auswählen'),
-                              ),
-                            ],
-                          ),
-                        )
-                          ],
+                      ],
                     ),
+                      ),
+              if (loading == true)
+                      Container(
+                        color: Colors.black.withOpacity(0.5),
+                        child: Center(
+                          child: CircularProgressIndicator(color: Colors.black,),
+                        ),
+                      ),
+                    ]
                   ),
                 ),
-                if (loading == true)
-                  Container(
-                    color: Colors.black.withOpacity(0.5),
-                    child: Center(
-                      child: CircularProgressIndicator(color: Colors.white,),
-                    ),
-                  ),
-                ]
               ),
             ),
           );

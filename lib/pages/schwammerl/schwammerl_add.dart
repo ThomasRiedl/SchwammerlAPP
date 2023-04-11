@@ -139,235 +139,369 @@ class _SchwammerlAddPageState extends State<SchwammerlAddPage> {
           }
           return Scaffold(
             appBar: AppBar(
-              title: const Text('Schwammerl'),
+              title: const Text('Schwammerl hinzufügen'),
             ),
-            body: SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  children: [
-                    Row(
+            body: Container(
+              width: MediaQuery.of(context).size.width,
+              height: MediaQuery.of(context).size.height,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Color.fromRGBO(248, 205, 209, 1),
+                    Color.fromRGBO(45, 46, 55, 1),
+                  ],
+                  stops: [0.0, 1.0],
+                  tileMode: TileMode.clamp,
+                ),
+              ),
+              child: SafeArea(
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
                       children: [
-                        Expanded(
-                        child: Autocomplete(
-                          optionsBuilder: (TextEditingValue textEditingValue) {
-                            if (textEditingValue.text.isEmpty) {
-                              return autoCompleteDataInfo;
-                            } else {
-                              return autoCompleteDataInfo.where((word) => word
-                                  .toLowerCase()
-                                  .contains(textEditingValue.text.toLowerCase()));
-                            }
-                          },
-                          optionsViewBuilder:
-                              (context, Function(String) onSelected, options) {
-                            return Material(
-                              elevation: 4,
-                              child: ListView.separated(
-                                padding: EdgeInsets.zero,
-                                itemBuilder: (context, index) {
-                                  final option = options.elementAt(index);
-                                  return ListTile(
-                                    title: SubstringHighlight(
-                                      text: option.toString(),
-                                      term: nameController.text,
-                                      textStyleHighlight: TextStyle(fontWeight: FontWeight.w700),
-                                    ),
-                                    onTap: () {
-                                      FocusScope.of(context).unfocus();
-                                      onSelected(option.toString());
+                        Row(
+                          children: [
+                            Expanded(
+                            child: Autocomplete(
+                              optionsBuilder: (TextEditingValue textEditingValue) {
+                                if (textEditingValue.text.isEmpty) {
+                                  return autoCompleteDataInfo;
+                                } else {
+                                  return autoCompleteDataInfo.where((word) => word
+                                      .toLowerCase()
+                                      .contains(textEditingValue.text.toLowerCase()));
+                                }
+                              },
+                              optionsViewBuilder:
+                                  (context, Function(String) onSelected, options) {
+                                return Material(
+                                  color: Color.fromRGBO(231, 195, 198, 1.0),
+                                  elevation: 4,
+                                  child: ListView.separated(
+                                    padding: EdgeInsets.zero,
+                                    itemBuilder: (context, index) {
+                                      final option = options.elementAt(index);
+                                      return ListTile(
+                                        title: SubstringHighlight(
+                                          text: option.toString(),
+                                          term: nameController.text,
+                                          textStyleHighlight: TextStyle(fontWeight: FontWeight.w700),
+                                        ),
+                                        onTap: () {
+                                          FocusScope.of(context).unfocus();
+                                          onSelected(option.toString());
+                                        },
+                                      );
                                     },
-                                  );
-                                },
-                                separatorBuilder: (context, index) => Divider(),
-                                itemCount: options.length,
-                              ),
-                            );
-                          },
-                          onSelected: (selectedString) {
-                            FocusScope.of(context).unfocus();
-                            print(selectedString);
-                          },
-                          fieldViewBuilder:
-                              (context, controller, focusNode, onEditingComplete) {
-                            nameController = controller;
-                            return TextField(
-                              controller: controller,
-                              focusNode: focusNode,
-                              onEditingComplete: onEditingComplete,
-                              decoration: InputDecoration(
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  borderSide: BorderSide(color: Colors.grey[300]!),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  borderSide: BorderSide(color: Colors.grey[300]!),
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  borderSide: BorderSide(color: Colors.grey[300]!),
-                                ),
-                                hintText: "Name des Schwammerls",
-                                prefixIcon: Icon(Icons.search),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.cancel_outlined),
-                        onPressed: () {
-                          FocusScope.of(context).unfocus();
-                          nameController.clear();
-                        },
-                      ),
-                      ],
-                    ),
-                    CustomTextEditFieldNoVal(
-                      controller: infoController,
-                      labelttxt: 'Info',
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        ElevatedButton(
-                          onPressed: _clearText,
-                          style: ButtonStyle(
-                            backgroundColor: MaterialStateProperty.all(Colors.orange),
-                          ),
-                          child: const Text('Löschen'),
-                        ),
-                        IconButton(
-                            onPressed: () async{
-                              PickedFile? pickedFile = await ImagePicker().getImage(
-                                source: ImageSource.camera,
-                                maxWidth: 1000,
-                                maxHeight: 1600,
-                                imageQuality: 50,
-                              );
-                              if (pickedFile != null) {
-                                File imageFileCamera = File(pickedFile.path);
-
-                                String uniqueFileName =
-                                DateTime.now().millisecondsSinceEpoch.toString();
-
-                                Reference referenceRoot = FirebaseStorage.instance.ref();
-                                Reference referenceDirImages =
-                                referenceRoot.child('images');
-
-                                Reference referenceImageToUpload =
-                                referenceDirImages.child(uniqueFileName);
-
-                                try {
-                                  setState(() => isUploading = true);
-                                  UploadTask uploadTask =  referenceImageToUpload.putFile(File(imageFileCamera!.path));
-
-                                  imageUrl = await (await uploadTask).ref.getDownloadURL();
-                                } catch (error) {
-                                  setState(() => isUploading = false);
-                                }
-                                setState(() => isUploading = false);
-                              }
-                            },
-                            icon: Icon(Icons.camera_alt)),
-                        IconButton(
-                            onPressed: () async {
-                              PickedFile? pickedFile = await ImagePicker().getImage(
-                                source: ImageSource.gallery,
-                                maxWidth: 1000,
-                                maxHeight: 1600,
-                                imageQuality: 50,
-                              );
-                              if (pickedFile != null) {
-                                File imageFileGallery = File(pickedFile.path);
-
-                                String uniqueFileName =
-                                DateTime.now().millisecondsSinceEpoch.toString();
-
-                                Reference referenceRoot = FirebaseStorage.instance.ref();
-                                Reference referenceDirImages =
-                                referenceRoot.child('images');
-
-                                Reference referenceImageToUpload =
-                                referenceDirImages.child(uniqueFileName);
-
-                                try {
-                                  setState(() => isUploading = true);
-                                  UploadTask uploadTask =  referenceImageToUpload.putFile(File(imageFileGallery!.path));
-
-                                  imageUrl = await (await uploadTask).ref.getDownloadURL();
-
-                                } catch (error) {
-                                  setState(() => isUploading = false);
-                                }
-                                setState(() => isUploading = false);
-                              }
-                            },
-                            icon: const Icon(Icons.folder_copy_rounded)),
-                        ElevatedButton.icon(
-                          onPressed: isUploading ? null :() {
-                            setState(() {
-                              if(nameController.text == "")
-                              {
-                                var snackBarEmpty = SnackBar(
-                                  content: Text('Bitte geben Sie einen Namen für das Schwammerl ein'),
+                                    separatorBuilder: (context, index) => Divider(),
+                                    itemCount: options.length,
+                                  ),
                                 );
-                                ScaffoldMessenger.of(context).removeCurrentSnackBar();
-                                ScaffoldMessenger.of(context).showSnackBar(snackBarEmpty);
-                              }
-                              else {
-                                name = nameController.text;
-                                info = infoController.text;
-                                _addSchwammerl();
-                                _addSchwammerlToAll();
+                              },
+                              onSelected: (selectedString) {
+                                FocusScope.of(context).unfocus();
+                                print(selectedString);
+                              },
+                              fieldViewBuilder:
+                                  (context, controller, focusNode, onEditingComplete) {
+                                nameController = controller;
+                                return TextField(
+                                  controller: controller,
+                                  focusNode: focusNode,
+                                  onEditingComplete: onEditingComplete,
+                                  decoration: InputDecoration(
+                                      hintText: "Name des Schwammerl",
+                                      prefixIcon: Icon(Icons.food_bank, color: Colors.black, size: 28,),
+                                      hintStyle: TextStyle(color: Colors.black),
+                                      border: InputBorder.none,
+                                      disabledBorder: OutlineInputBorder(
+                                          borderSide: BorderSide(color: Colors.black, width: 3),
+                                          borderRadius: BorderRadius.circular(30).copyWith(
+                                              topRight: Radius.circular(0),
+                                              bottomLeft: Radius.circular(0))),
+                                      contentPadding: EdgeInsets.all(26),
+                                      enabledBorder: OutlineInputBorder(
+                                          borderSide: BorderSide(color: Colors.black, width: 3),
+                                          borderRadius: BorderRadius.circular(30).copyWith(
+                                              topRight: Radius.circular(0),
+                                              bottomLeft: Radius.circular(0))),
+                                      focusedBorder: OutlineInputBorder(
+                                          borderSide: BorderSide(color: Colors.black, width: 3),
+                                          borderRadius: BorderRadius.circular(30).copyWith(
+                                              topRight: Radius.circular(0),
+                                              bottomLeft: Radius.circular(0)))),
+                                );
+                              },
+                            ),
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.cancel_outlined),
+                            onPressed: () {
+                              FocusScope.of(context).unfocus();
+                              nameController.clear();
+                            },
+                          ),
+                          ],
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(0, 16, 0, 0),
+                          child: TextFormField(
+                            controller: infoController,
+                            style: TextStyle(color: Colors.black),
+                            decoration: InputDecoration(
+                                hintText: 'Info',
+                                hintStyle: TextStyle(color: Colors.black),
+                                prefixIcon: Icon(Icons.info_outline, color: Colors.black),
+                                border: InputBorder.none,
+                                disabledBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(color: Colors.black, width: 3),
+                                    borderRadius: BorderRadius.circular(30).copyWith(
+                                        topRight: Radius.circular(0),
+                                        bottomLeft: Radius.circular(0))),
+                                contentPadding: EdgeInsets.all(26),
+                                enabledBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(color: Colors.black, width: 3),
+                                    borderRadius: BorderRadius.circular(30).copyWith(
+                                        topRight: Radius.circular(0),
+                                        bottomLeft: Radius.circular(0))),
+                                focusedBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(color: Colors.black, width: 3),
+                                    borderRadius: BorderRadius.circular(30).copyWith(
+                                        topRight: Radius.circular(0),
+                                        bottomLeft: Radius.circular(0)))),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(0, 8, 0, 0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              ElevatedButton(
+                              onPressed: () {
                                 _clearText();
                                 Navigator.pop(context);
-                              }
-                            });
-                          },
-                          style: ButtonStyle(
-                            backgroundColor: MaterialStateProperty.all(Colors.orange),
-                          ), icon: isUploading ? Container(
-                          width: 24,
-                          height: 24,
-                          padding: const EdgeInsets.all(2.0),
-                          child: const CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 3,
+                              },
+                                child: const Text('Abrechen'),
+                              ),
+                              IconButton(
+                                  onPressed: () async{
+                                    PickedFile? pickedFile = await ImagePicker().getImage(
+                                      source: ImageSource.camera,
+                                      maxWidth: 1000,
+                                      maxHeight: 1600,
+                                      imageQuality: 50,
+                                    );
+                                    if (pickedFile != null) {
+                                      File imageFileCamera = File(pickedFile.path);
+
+                                      String uniqueFileName =
+                                      DateTime.now().millisecondsSinceEpoch.toString();
+
+                                      Reference referenceRoot = FirebaseStorage.instance.ref();
+                                      Reference referenceDirImages =
+                                      referenceRoot.child('images');
+
+                                      Reference referenceImageToUpload =
+                                      referenceDirImages.child(uniqueFileName);
+
+                                      try {
+                                        setState(() => isUploading = true);
+                                        UploadTask uploadTask =  referenceImageToUpload.putFile(File(imageFileCamera!.path));
+
+                                        imageUrl = await (await uploadTask).ref.getDownloadURL();
+                                      } catch (error) {
+                                        setState(() => isUploading = false);
+                                      }
+                                      setState(() => isUploading = false);
+                                    }
+                                  },
+                                  icon: Icon(Icons.camera_alt)),
+                              IconButton(
+                                  onPressed: () async {
+                                    PickedFile? pickedFile = await ImagePicker().getImage(
+                                      source: ImageSource.gallery,
+                                      maxWidth: 1000,
+                                      maxHeight: 1600,
+                                      imageQuality: 50,
+                                    );
+                                    if (pickedFile != null) {
+                                      File imageFileGallery = File(pickedFile.path);
+
+                                      String uniqueFileName =
+                                      DateTime.now().millisecondsSinceEpoch.toString();
+
+                                      Reference referenceRoot = FirebaseStorage.instance.ref();
+                                      Reference referenceDirImages =
+                                      referenceRoot.child('images');
+
+                                      Reference referenceImageToUpload =
+                                      referenceDirImages.child(uniqueFileName);
+
+                                      try {
+                                        setState(() => isUploading = true);
+                                        UploadTask uploadTask =  referenceImageToUpload.putFile(File(imageFileGallery!.path));
+
+                                        imageUrl = await (await uploadTask).ref.getDownloadURL();
+
+                                      } catch (error) {
+                                        setState(() => isUploading = false);
+                                      }
+                                      setState(() => isUploading = false);
+                                    }
+                                  },
+                                  icon: const Icon(Icons.folder_copy_rounded)),
+                              ElevatedButton.icon(
+                                onPressed: isUploading ? null :() {
+                                  setState(() {
+                                    if(nameController.text == "")
+                                    {
+                                      var snackBarEmpty = SnackBar(
+                                        content: Text('Bitte geben Sie einen Namen für das Schwammerl ein'),
+                                      );
+                                      ScaffoldMessenger.of(context).removeCurrentSnackBar();
+                                      ScaffoldMessenger.of(context).showSnackBar(snackBarEmpty);
+                                    }
+                                    else {
+                                      name = nameController.text;
+                                      info = infoController.text;
+                                      _addSchwammerl();
+                                      _addSchwammerlToAll();
+                                      _clearText();
+                                      Navigator.pop(context);
+                                    }
+                                  });
+                                },
+                                icon: isUploading ? Container(
+                                width: 24,
+                                height: 24,
+                                padding: const EdgeInsets.all(2.0),
+                                child: const CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 3,
+                                ),
+                              ) : const Icon(Icons.cloud_upload),
+                                label: const Text('Platz speichern'),
+                              ),
+                            ],
                           ),
-                        ) : const Icon(Icons.cloud_upload),
-                          label: const Text('Platz speichern'),
+                        ),
+                        Align(
+                          alignment: AlignmentDirectional(0, 1),
+                          child: Padding(
+                            padding: EdgeInsetsDirectional.fromSTEB(0, 10, 0, 0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                if(imageUrl == "")
+                                    Container(
+                                      width: 190.0,
+                                      height: 190.0,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        image: DecorationImage(
+                                          fit: BoxFit.cover,
+                                          image: Image.asset('assets/images/mushroom.png',).image,
+                                        ),
+                                      ),
+                                    child: Stack(
+                                      children: [
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.end,
+                                          children: [
+                                            Align(
+                                              alignment: Alignment.bottomRight,
+                                              child: CircleAvatar(
+                                                child: IconButton(
+                                                  onPressed: () {
+                                                    imageUrl = "";
+                                                    setState(() {
+
+                                                    });
+                                                  },
+                                                  highlightColor: Colors.transparent,
+                                                  splashColor: Colors.transparent,
+                                                  icon: Icon(Icons.cancel_outlined),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                if(imageUrl != "")
+                                  GestureDetector(
+                                    onTap: () {
+                                      showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          return Dialog(
+                                            child: Container(
+                                              width: 300,
+                                              height: 300,
+                                              decoration: BoxDecoration(
+                                                image: DecorationImage(
+                                                  image: Image.network(
+                                                    imageUrl,
+                                                  ).image,
+                                                  fit: BoxFit.cover,
+                                                ),
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                      );
+                                    },
+                                    child: Container(
+                                      width: 190.0,
+                                      height: 190.0,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        image: DecorationImage(
+                                          fit: BoxFit.cover,
+                                          image: Image.network(
+                                            imageUrl,
+                                          ).image,
+                                        ),
+                                      ),
+                                      child: Stack(
+                                        children: [
+                                          Row(
+                                            mainAxisAlignment: MainAxisAlignment.end,
+                                            children: [
+                                              Align(
+                                                alignment: Alignment.bottomRight,
+                                                child: CircleAvatar(
+                                                  child: IconButton(
+                                                    onPressed: () {
+                                                      imageUrl = "";
+                                                      setState(() {
+
+                                                      });
+                                                    },
+                                                    highlightColor: Colors.transparent,
+                                                    splashColor: Colors.transparent,
+                                                    icon: Icon(Icons.cancel_outlined),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
                         ),
                       ],
                     ),
-                    SizedBox(height: 20),
-                    AspectRatio(
-                        aspectRatio: 1,
-                        child: Column(
-                          children: [
-                            SizedBox(
-                                width: 100,
-                                height: 200,
-                                child: SingleChildScrollView(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.center,
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      if(imageUrl == "")
-                                        const Text(''),
-                                      if(imageUrl != "")
-                                        Image.network(imageUrl)
-                                    ],
-                                  ),
-                                )
-                            )
-                          ],
-                        )
-                    ),
-                    SizedBox(height: 10),
-                    _deleteImageButton(),
-                  ],
+                  ),
                 ),
               ),
             ),

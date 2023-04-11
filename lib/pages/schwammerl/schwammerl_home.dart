@@ -35,10 +35,6 @@ class _SchwammerlHomePageState extends State<SchwammerlHomePage> {
         .catchError((_) => print('Something Error In Deleted Schwammerl'));
   }
 
-  Widget _title() {
-    return const Text('Schwammerl');
-  }
-
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
@@ -126,7 +122,80 @@ class _SchwammerlHomePageState extends State<SchwammerlHomePage> {
                                     Flexible(
                                       child: IconButton(
                                         onPressed: () {
-                                          _deleteSchwammerl(firebaseData[index]['id']);
+                                          showDialog(
+                                            context: context,
+                                            builder: (BuildContext context) {
+                                              return AlertDialog(
+                                                backgroundColor: mainColor,
+                                                title: Text('Schwammerl ' +firebaseData[index]['name']+ ' löschen?',
+                                                  style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                                content: Text('Sind Sie sich sicher, dass Sie dieses Schwammerl löschen möchten?',
+                                                ),
+                                                actions: <Widget>[
+                                                  Container(
+                                                    padding: EdgeInsets.fromLTRB(16,0,16,0),
+                                                    child: Row(
+                                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                      children: <Widget>[
+                                                        ElevatedButton(
+                                                          onPressed: () {
+                                                            Navigator.of(context).pop();
+                                                          },
+                                                          style: ElevatedButton.styleFrom(
+                                                            backgroundColor: mainColor,
+                                                            shape: RoundedRectangleBorder(
+                                                              borderRadius: BorderRadius.circular(10),
+                                                              side: BorderSide(color: Colors.black,
+                                                                  width: 3), // add this line
+                                                            ),
+                                                          ),
+                                                          child: Text(
+                                                            'Abrechen',
+                                                            style: TextStyle(
+                                                              color: Colors.black,
+                                                              fontWeight: FontWeight.bold,
+                                                              fontSize: 18.0,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                        ElevatedButton(
+                                                          onPressed: () {
+                                                            _deleteSchwammerl(firebaseData[index]['id']);
+                                                            Navigator.of(context).pop();
+                                                            var snackBarEmpty = SnackBar(
+                                                              content: Text('Das Schwammerl wurde erfolgreich gelöscht'),
+                                                            );
+                                                            ScaffoldMessenger.of(context).removeCurrentSnackBar();
+                                                            ScaffoldMessenger.of(context).showSnackBar(snackBarEmpty);
+                                                            Navigator.of(context).pop();
+                                                          },
+                                                          style: ElevatedButton.styleFrom(
+                                                            backgroundColor: mainColor,
+                                                            shape: RoundedRectangleBorder(
+                                                              borderRadius: BorderRadius.circular(10),
+                                                              side: BorderSide(color: Colors.black,
+                                                                  width: 3), // add this line
+                                                            ),
+                                                          ),
+                                                          child: Text(
+                                                            'Löschen',
+                                                            style: TextStyle(
+                                                              color: Colors.black,
+                                                              fontWeight: FontWeight.bold,
+                                                              fontSize: 18.0,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ],
+                                              );
+                                            },
+                                          );
                                         },
                                         icon: const Icon(
                                           Icons.delete,
@@ -141,7 +210,7 @@ class _SchwammerlHomePageState extends State<SchwammerlHomePage> {
                           );
                         },
                         body: Padding(
-                          padding: const EdgeInsets.fromLTRB(8,0,8,16),
+                          padding: const EdgeInsets.fromLTRB(8,0,8,0),
                           child: firebaseData[index]['image'] == "" ? CircleAvatar(
                             radius: 100,
                             backgroundImage: AssetImage('assets/images/mushroom.png'),

@@ -159,7 +159,7 @@ class _MapScenePageState extends State<MapScenePage> with AutomaticKeepAliveClie
                 markers.add(Marker(
                   markerId: MarkerId(index.toString()),
                   icon: BitmapDescriptor.fromBytes(
-                      await _getBytesFromAsset('assets/images/mushroom.png', 100),
+                      await _getBytesFromAsset('assets/images/mushroom_map.png', 100),
                 ),
                   position: LatLng(geopoint.latitude, geopoint.longitude),
                 ));

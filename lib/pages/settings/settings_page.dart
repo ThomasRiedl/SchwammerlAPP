@@ -237,7 +237,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                               width: 3), // add this line
                                             ),
                                           ),
-                                          child: const Text('Login',
+                                          child: const Text('Anmelden',
                                             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18.0),),
                                         ),
                                       ],
@@ -290,11 +290,12 @@ class _SettingsPageState extends State<SettingsPage> {
                   });
                 }
                 return AlertDialog(
-                  title: Text('Delete User'),
-                  content: Text('Are you sure you want to delete this User?'),
+                  backgroundColor: mainColor,
+                  title: Text('Benutzer löschen'),
+                  content: Text('Sind Sie sich sicher, dass Sie diesen Benutzer löschen möchten?'),
                   actions: <Widget>[
                     SizedBox(
-                      width: 200,
+                      width: 190,
                       height: 38,
                       child: ElevatedButton(
                         onPressed: _secondsLeft == 0 ?
@@ -319,7 +320,15 @@ class _SettingsPageState extends State<SettingsPage> {
                       ),
                     ),
                     ElevatedButton(
-                      child: Text('Cancel'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: mainColor,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15),
+                          side: BorderSide(color: Colors.black,
+                              width: 3), // add this line
+                        ),
+                      ),
+                      child: Text('Abrechen'),
                       onPressed: () {
                         Navigator.of(context).pop();
                       },

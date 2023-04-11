@@ -66,7 +66,7 @@ class _NavBarPageState extends State<NavBarPage> {
             tooltip: 'Info',
           ),
           BottomNavigationBarItem(
-            icon: Image.asset('assets/images/mushroom_pink.png',
+            icon: Image.asset('assets/images/mushroom_white.png',
               width: 32,
               height: 32,
             ),

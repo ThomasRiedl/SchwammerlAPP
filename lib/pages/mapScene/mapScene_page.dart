@@ -128,7 +128,7 @@ class _MapScenePageState extends State<MapScenePage> with AutomaticKeepAliveClie
               markers.add(Marker(
                 markerId: MarkerId(index.toString()),
                 icon: BitmapDescriptor.fromBytes(
-                    await _getBytesFromAsset('assets/images/mushroom.png', 100),
+                    await _getBytesFromAsset('assets/images/mushroom_map.png', 100),
                ),
                 position: LatLng(geopoint.latitude, geopoint.longitude),
               ));
@@ -142,7 +142,7 @@ class _MapScenePageState extends State<MapScenePage> with AutomaticKeepAliveClie
             markers.add(Marker(
               markerId: MarkerId(doc.id),
               icon: BitmapDescriptor.fromBytes(
-                  await _getBytesFromAsset('assets/images/mushroom.png', 100),
+                  await _getBytesFromAsset('assets/images/mushroom_map.png', 100),
             ),
               position: LatLng(geopoint.latitude, geopoint.longitude),
             ));
@@ -170,7 +170,7 @@ class _MapScenePageState extends State<MapScenePage> with AutomaticKeepAliveClie
               markers.add(Marker(
                 markerId: MarkerId(doc.id),
                 icon: BitmapDescriptor.fromBytes(
-                  await _getBytesFromAsset('assets/images/mushroom.png', 100),
+                  await _getBytesFromAsset('assets/images/mushroom_map.png', 100),
                 ),
                 position: LatLng(geopoint.latitude, geopoint.longitude),
               ));
@@ -329,7 +329,7 @@ class _MapScenePageState extends State<MapScenePage> with AutomaticKeepAliveClie
                 markers.add(Marker(
                   markerId: MarkerId(id),
                   icon: BitmapDescriptor.fromBytes(
-                      await _getBytesFromAsset('assets/images/mushroom.png', 100),
+                      await _getBytesFromAsset('assets/images/mushroom_map.png', 100),
                 ),
                   position: LatLng(geopoint.latitude, geopoint.longitude),
                 ));
@@ -551,7 +551,7 @@ class _MapScenePageState extends State<MapScenePage> with AutomaticKeepAliveClie
                           markerId: MarkerId('lifeTracking'),
                           infoWindow: InfoWindow(title: 'LifeTracking'),
                           icon: BitmapDescriptor.fromBytes(
-                              await _getBytesFromAsset('assets/images/mushroom.png', 100),
+                              await _getBytesFromAsset('assets/images/mushroom_map.png', 100),
                         ),
                           position: LatLng(currentLat, currentLong),
                         )
@@ -561,7 +561,13 @@ class _MapScenePageState extends State<MapScenePage> with AutomaticKeepAliveClie
                     });
                   }
                 },
-                child: const Icon(Icons.no_food),
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(8, 4, 8, 4),
+                  child: Image.asset('assets/images/mushroom_pink.png',
+                    width: 32,
+                    height: 32,
+                  ),
+                ),
               ),
             ),
             Positioned(

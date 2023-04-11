@@ -316,7 +316,13 @@ class _RouteAddPageState extends State<RouteAddPage> {
                                     decoration: InputDecoration(
                                         hintText: 'Name des Schwammerl',
                                         hintStyle: TextStyle(color: Colors.black),
-                                        prefixIcon: Icon(Icons.person, color: Colors.black),
+                                        prefixIcon: Padding(
+                                          padding: EdgeInsets.fromLTRB(8, 4, 8, 4),
+                                          child: Image.asset('assets/images/mushroom_pink.png',
+                                            width: 8,
+                                            height: 8,
+                                          ),
+                                        ),
                                         border: InputBorder.none,
                                         disabledBorder: OutlineInputBorder(
                                             borderSide: BorderSide(color: Colors.black, width: 3),

@@ -214,7 +214,13 @@ class _SchwammerlAddPageState extends State<SchwammerlAddPage> {
                                   onEditingComplete: onEditingComplete,
                                   decoration: InputDecoration(
                                       hintText: "Name des Schwammerl",
-                                      prefixIcon: Icon(Icons.food_bank, color: Colors.black, size: 28,),
+                                      prefixIcon: Padding(
+                                        padding: EdgeInsets.fromLTRB(8, 4, 8, 4),
+                                        child: Image.asset('assets/images/mushroom_pink.png',
+                                          width: 8,
+                                          height: 8,
+                                        ),
+                                      ),
                                       hintStyle: TextStyle(color: Colors.black),
                                       border: InputBorder.none,
                                       disabledBorder: OutlineInputBorder(
@@ -404,7 +410,7 @@ class _SchwammerlAddPageState extends State<SchwammerlAddPage> {
                                         shape: BoxShape.circle,
                                         image: DecorationImage(
                                           fit: BoxFit.cover,
-                                          image: Image.asset('assets/images/mushroom.png',).image,
+                                          image: Image.asset('assets/images/mushroom_pink_full.png',).image,
                                         ),
                                       ),
                                     child: Stack(

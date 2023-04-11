@@ -66,13 +66,13 @@ class _NavBarPageState extends State<NavBarPage> {
             tooltip: 'Info',
           ),
           BottomNavigationBarItem(
-            icon: Icon(
-              Icons.food_bank_outlined,
-              size: 32,
+            icon: Image.asset('assets/images/mushroom_pink.png',
+              width: 32,
+              height: 32,
             ),
-            activeIcon: Icon(
-              Icons.food_bank,
-              size: 32
+            activeIcon: Image.asset('assets/images/mushroom_pink.png',
+              width: 32,
+              height: 32,
             ),
             label: 'Schwammerl',
             tooltip: 'Schwammerl',

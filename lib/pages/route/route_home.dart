@@ -163,7 +163,6 @@ class _RouteHomePageState extends State<RouteHomePage> {
                                                             );
                                                             ScaffoldMessenger.of(context).removeCurrentSnackBar();
                                                             ScaffoldMessenger.of(context).showSnackBar(snackBarEmpty);
-                                                            Navigator.of(context).pop();
                                                           },
                                                           style: ElevatedButton.styleFrom(
                                                             backgroundColor: mainColor,

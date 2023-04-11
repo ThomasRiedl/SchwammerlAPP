@@ -170,7 +170,9 @@ class _SchwammerlHomePageState extends State<SchwammerlHomePage> {
                                                             );
                                                             ScaffoldMessenger.of(context).removeCurrentSnackBar();
                                                             ScaffoldMessenger.of(context).showSnackBar(snackBarEmpty);
-                                                            Navigator.of(context).pop();
+                                                            setState(() {
+
+                                                            });
                                                           },
                                                           style: ElevatedButton.styleFrom(
                                                             backgroundColor: mainColor,
@@ -210,10 +212,10 @@ class _SchwammerlHomePageState extends State<SchwammerlHomePage> {
                           );
                         },
                         body: Padding(
-                          padding: const EdgeInsets.fromLTRB(8,0,8,0),
+                          padding: const EdgeInsets.fromLTRB(8,0,8,8),
                           child: firebaseData[index]['image'] == "" ? CircleAvatar(
                             radius: 100,
-                            backgroundImage: AssetImage('assets/images/mushroom.png'),
+                            backgroundImage: AssetImage('assets/images/mushroom_pink_full.png'),
                             ) : GestureDetector(
                             onTap: () {
                               showDialog(
